@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --color-dark-bg: #0f172a;
+  --color-dark-surface: #1e293b;
+  --color-dark-border: #334155;
+  --color-brand-primary: #6366f1;
+  --color-brand-secondary: #8b5cf6;
+  --color-brand-accent: #10b981;
+}
+
+body {
+  @apply bg-dark-bg text-gray-100 font-sans;
+}
+
+.glass-panel {
+  @apply bg-dark-surface/70 backdrop-blur-md border border-dark-border rounded-xl shadow-xl;
+}
