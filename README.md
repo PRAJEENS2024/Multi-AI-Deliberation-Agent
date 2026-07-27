@@ -1,49 +1,111 @@
-# AI Jury
+# Veritas AI: Autonomous Multi-Agent Courtroom System 🚀
 
-> "Where AI Models Debate Before Answering."
+> "Where Specialized AI Personas Debate, Cross-Examine Evidence, and Synthesize Truth."
 
-AI Jury is an Agentic AI system that orchestrates multiple LLMs (like GPT-4o, Claude 3.5 Sonnet, and Gemini) to collaboratively answer a prompt. Instead of relying on a single model's potentially hallucinated answer, AI Jury extracts claims, detects conflicts, verifies facts against external sources, and runs a structured debate among the models to reach a consensus.
+**Veritas AI** is an advanced Multi-Agent Deliberation & Synthesizer System. Instead of relying on a single AI model's potentially biased or hallucinated answer, Veritas AI orchestrates **5 specialized autonomous AI agents** powered by free open-weight models on Groq to cross-examine claims, audit logic, verify facts live on the web, and synthesize an authoritative verdict.
 
-## Architecture
+---
 
-The system utilizes 9 specialized agents orchestrated via an asynchronous Python/FastAPI engine:
+## 🤖 The 5 Autonomous Agents
 
-1. **User Agent**: Receives and validates the user prompt.
-2. **Cost & Latency Optimizer Agent**: Dynamically selects the number and type of models based on query complexity.
-3. **Orchestrator Agent**: Manages parallel execution and state machine.
-4. **Claim Extraction Agent**: Parses raw text responses into structured claims (Facts, Assumptions).
-5. **Conflict Detection Agent**: Groups claims and identifies disagreements.
-6. **Source Verification Agent**: Fact-checks disputed claims using external APIs.
-7. **Evidence Evaluation Agent**: Re-scores claims based on verified external evidence.
-8. **Deliberation Agent**: Conducts multi-round debates, asking models to defend or revise their opinions based on evidence.
-9. **Verdict Synthesis Agent**: Generates the final, explainable answer with a calculated confidence score.
+1. **⚙️ Orchestrator Agent**: Controls session state, persistent storage (`backend/data/sessions.json`), and asynchronous workflow execution.
+2. **🔍 Primary Research Agent** (`Meta Llama 3.3 70B Versatile`): Generates deep, technical primary facts and initial assessments.
+3. **⚡ Critical Audit Agent** (`Meta Llama 3.1 8B Instant`): Acts as the skeptic/devil's advocate, uncovering hidden assumptions, fallacies, and edge cases.
+4. **⚖️ Data & Logic Agent** (`Qwen 2.5 27B`): Audits metrics, exact definitions, scope, and numerical consistency.
+5. **👑 Lead Synthesis Engine** (`Meta Llama 3.3 70B Versatile`): Synthesizes multi-turn cross-examination debates and verified web search evidence into a clean, objective verdict.
 
-## Tech Stack
+---
+
+## 🛠️ Tech Stack
+
 - **Frontend**: React 18, Vite, TypeScript, Tailwind CSS, Framer Motion, Lucide-React
-- **Backend**: FastAPI, Python 3.12, asyncio
-- **Agents**: Custom asynchronous orchestrator pattern using litellm/google-genai.
+- **Backend**: Python 3.12, FastAPI, Asyncio, Pydantic
+- **LLM Infrastructure**: Groq API (Zero cost, high-speed open-weights: Llama 3.3 70B, Llama 3.1 8B, Qwen 2.5 27B)
+- **Persistence**: File-based JSON database (`backend/data/sessions.json` & `users.json`)
 
-## Running Locally
+---
 
-### Backend
+## 🚀 How to Run the Project
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- [Python 3.10+](https://www.python.org/)
+- A **free Groq API key** from [console.groq.com](https://console.groq.com)
+
+---
+
+### Step 1: Clone the Repository
 ```bash
-cd backend
-python -m venv venv
-# On Windows
-.\venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn main:app --port 8000 --reload
+git clone https://github.com/PRAJEENS2024/Multi-AI-Deliberation-Agent.git
+cd Multi-AI-Deliberation-Agent
 ```
 
-### Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
-Open `http://localhost:5173` in your browser to experience AI Jury.
+---
 
-## Hackathon Differentiators
-- True Agentic behavior (Agents reasoning, debating, and updating state independently).
-- Elegant React UI featuring real-time state streaming, glassmorphism, and micro-animations.
-- Demonstrates advanced consensus-building which goes far beyond basic RAG or Chatbot wrappers.
+### Step 2: Set Up & Run the Backend
+
+1. Navigate to the `backend` directory:
+   ```bash
+   cd backend
+   ```
+
+2. Create a Python virtual environment:
+   - **Windows**:
+     ```powershell
+     python -m venv venv
+     .\venv\Scripts\activate
+     ```
+   - **macOS/Linux**:
+     ```bash
+     python3 -m venv venv
+     source venv/bin/activate
+     ```
+
+3. Install required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Create a `.env` file inside the `backend/` folder:
+   ```env
+   GROQ_API_KEY=your_groq_api_key_here
+   ```
+
+5. Start the backend server:
+   ```bash
+   uvicorn main:app --port 8000 --reload
+   ```
+   *Backend server will run at `http://localhost:8000`.*
+
+---
+
+### Step 3: Set Up & Run the Frontend
+
+1. Open a new terminal and navigate to the `frontend` directory:
+   ```bash
+   cd frontend
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+   *Frontend interface will run at `http://localhost:5173`.*
+
+---
+
+### Step 4: Open in Browser
+Open `http://localhost:5173` in your browser. Type any prompt (e.g. *"Is nuclear energy safe and green?"* or *"Who is the CM of TN during 2021?"*) to watch the 4 autonomous sub-agents cross-examine evidence and synthesize a verified verdict!
+
+---
+
+## 🌟 Features
+- **No Paid Models Required**: Completely free to run using Groq API keys.
+- **Interactive Courtroom Cross-Examination Visualizer**: View live turn-by-turn debates between Critical Audit and Primary Research agents.
+- **Persistent Chat History**: Sessions automatically save to disk and reload upon server restart.
+- **Live Web Verification**: Automatically checks disputed claims against web sources.
