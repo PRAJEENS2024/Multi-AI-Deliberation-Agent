@@ -65,13 +65,21 @@ async def run_jury_workflow(session_id: str):
                     cleaned = cleaned[3:-3]
                 
                 claims_data = json.loads(cleaned.strip())
-                for item in claims_data:
-                    all_claims.append(Claim(
-                        claim=item.get("claim", "Unknown claim"),
-                        category=item.get("category", "Fact"),
-                        confidence=item.get("confidence", "Medium"),
-                        model=model
-                    ))
+                if isinstance(claims_data, dict):
+                    for val in claims_data.values():
+                        if isinstance(val, list):
+                            claims_data = val
+                            break
+                            
+                if isinstance(claims_data, list):
+                    for item in claims_data:
+                        if isinstance(item, dict):
+                            all_claims.append(Claim(
+                                claim=item.get("claim", "Unknown claim"),
+                                category=item.get("category", "Fact"),
+                                confidence=item.get("confidence", "Medium"),
+                                model=model
+                            ))
             except Exception as e:
                 log_event(session_id, f"Error parsing claims for {model}: {str(e)} - Raw: {claims_json[:50]}", "ERROR")
         
@@ -96,14 +104,22 @@ async def run_jury_workflow(session_id: str):
             elif cleaned.startswith("```"): cleaned = cleaned[3:-3]
             
             conflict_data = json.loads(cleaned.strip())
-            for item in conflict_data:
-                state.disputed_claims.append(DisputedClaim(
-                    claim=item.get("claim", "Unknown"),
-                    supporting_models=item.get("supporting_models", []),
-                    opposing_models=item.get("opposing_models", [])
-                ))
-        except:
-            log_event(session_id, "No valid conflicts found or parse error.")
+            if isinstance(conflict_data, dict):
+                for val in conflict_data.values():
+                    if isinstance(val, list):
+                        conflict_data = val
+                        break
+                        
+            if isinstance(conflict_data, list):
+                for item in conflict_data:
+                    if isinstance(item, dict):
+                        state.disputed_claims.append(DisputedClaim(
+                            claim=item.get("claim", "Unknown"),
+                            supporting_models=item.get("supporting_models", []),
+                            opposing_models=item.get("opposing_models", [])
+                        ))
+        except Exception as e:
+            log_event(session_id, f"No valid conflicts found or parse error: {str(e)}", "ERROR")
         
         state.status = "Verifying Sources"
         update_session(session_id, state)
