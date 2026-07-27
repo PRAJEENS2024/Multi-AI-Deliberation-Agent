@@ -1,9 +1,8 @@
 fastapi
 uvicorn
-sqlalchemy
 pydantic
 python-dotenv
-redis
-duckduckgo-search
 google-genai
-openai
+duckduckgo-search
+groq
+anthropic

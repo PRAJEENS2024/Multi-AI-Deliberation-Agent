@@ -2,76 +2,66 @@ import os
 import json
 import asyncio
 from typing import Dict, Any, List
-from google import genai
-from google.genai import types
+from groq import Groq
 from dotenv import load_dotenv
 
 load_dotenv()
 
+# Initialize Groq client
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+# Use completely free open source models hosted on Groq to avoid any quota/billing issues
 AVAILABLE_MODELS = [
-    "gemini-1.5-pro",
-    "gpt-4o",
-    "claude-3.5-sonnet"
+    "llama-3.3-70b-versatile",
+    "mixtral-8x7b-32768",
+    "gemma2-9b-it"
 ]
 
-def get_genai_client():
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        return None
-    return genai.Client(api_key=api_key)
-
-async def query_llm(model: str, prompt: str, system_prompt: str = "", response_format: str = "text") -> str:
+async def query_llm(model: str, prompt: str, system_instruction: str = "", response_format: str = "text") -> str:
     """
-    Live LLM client. We use Gemini to simulate the other models by passing
-    a system prompt that tells it to act like the target model.
+    Queries the specified LLM via Groq with a prompt.
     """
-    client = get_genai_client()
-    
-    # If no API key, fallback to mock (for safety if user forgets to add key)
-    if not client:
-        await asyncio.sleep(2)
-        if response_format == "json":
-            return json.dumps([{"claim": "Mocked claim due to missing API key.", "category": "Fact", "confidence": "High", "model": model}])
-        return f"[MOCK - No API Key] This is a simulated response from {model} for: '{prompt[:30]}...'"
-    
-    # Base system prompt to enforce persona
-    persona_prompt = f"You are acting as {model}. Provide an expert, detailed, and distinct perspective."
-    if system_prompt:
-        persona_prompt += f" {system_prompt}"
-        
-    config = types.GenerateContentConfig(
-        system_instruction=persona_prompt,
-        temperature=0.7
-    )
-    
-    if response_format == "json":
-        config.response_mime_type = "application/json"
-    
-    # Use gemini-3.5-flash for speed and reliability.
-    target_engine = "gemini-3.5-flash"
-    
     max_retries = 3
+    
+    # Map the model if the orchestrator still passes old names
+    actual_model = model
+    if "gemini" in model:
+        actual_model = "gemma2-9b-it"
+    elif "claude" in model:
+        actual_model = "mixtral-8x7b-32768"
+    elif "llama3-70b-8192" in model:
+        actual_model = "llama-3.3-70b-versatile"
+    
     for attempt in range(max_retries):
         try:
-            # We must wrap the sync call in to_thread because google-genai is sync
-            def fetch():
-                response = client.models.generate_content(
-                    model=target_engine,
-                    contents=prompt,
-                    config=config
-                )
-                return response.text
+            def fetch_groq():
+                messages = []
+                if system_instruction:
+                    messages.append({"role": "system", "content": system_instruction})
+                messages.append({"role": "user", "content": prompt})
                 
-            result = await asyncio.to_thread(fetch)
-            return result
-        except Exception as e:
-            err_str = str(e)
-            if "429" in err_str and attempt < max_retries - 1:
-                print(f"Rate limited. Retrying in {4 * (attempt + 1)} seconds...")
-                await asyncio.sleep(4 * (attempt + 1))
-                continue
+                response = groq_client.chat.completions.create(
+                    model=actual_model,
+                    messages=messages,
+                    response_format={"type": "json_object"} if response_format == "json" else None,
+                    temperature=0.7
+                )
+                return response.choices[0].message.content
             
-            print(f"LLM Error: {e}")
+            return await asyncio.to_thread(fetch_groq)
+            
+        except Exception as e:
+            err_str = str(e).lower()
+            if "429" in err_str or "rate limit" in err_str:
+                if attempt < max_retries - 1:
+                    print(f"Rate limited on {actual_model}. Retrying in {4 * (attempt + 1)} seconds...")
+                    await asyncio.sleep(4 * (attempt + 1))
+                    continue
+            
+            print(f"LLM Error ({actual_model}): {e}")
+            
+            # HACKATHON FALLBACK
             if response_format == "json":
                 return "[]"
-            return f"Error communicating with model {model}."
+            
+            return f"[{actual_model.upper()} FALLBACK RESPONSE]: The model encountered a network error or quota exhaustion and could not generate a response for this query."

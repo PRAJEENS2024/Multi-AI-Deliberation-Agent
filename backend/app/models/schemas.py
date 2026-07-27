@@ -3,9 +3,28 @@ from typing import List, Dict, Optional, Any
 
 class QueryRequest(BaseModel):
     prompt: str = Field(..., description="The user's question or prompt.")
+    session_id: Optional[str] = Field(None, description="Optional session ID to continue a conversation.")
     
 class QueryResponse(BaseModel):
     session_id: str
+    status: str
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+class SignupRequest(BaseModel):
+    username: str
+    password: str
+
+class AuthResponse(BaseModel):
+    success: bool
+    token: Optional[str] = None
+    detail: Optional[str] = None
+    
+class SessionSummary(BaseModel):
+    session_id: str
+    prompt: str
     status: str
 
 class Claim(BaseModel):
@@ -33,6 +52,11 @@ class FinalVerdict(BaseModel):
     remaining_uncertainty: str
     human_review_needed: bool
 
+class Message(BaseModel):
+    role: str # "user" or "assistant"
+    content: str
+    verdict: Optional[FinalVerdict] = None
+
 class SessionState(BaseModel):
     session_id: str
     prompt: str
@@ -44,3 +68,4 @@ class SessionState(BaseModel):
     debates: List[Dict[str, Any]] = []
     verdict: Optional[FinalVerdict] = None
     logs: List[Dict[str, str]] = []
+    history: List[Message] = []
