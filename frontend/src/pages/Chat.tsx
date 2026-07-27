@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Loader2, CheckCircle, AlertTriangle, ShieldAlert, User, Bot, ChevronDown, ChevronUp } from 'lucide-react';
+import { Send, Loader2, CheckCircle, AlertTriangle, ShieldAlert, User, Bot, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
@@ -111,12 +111,20 @@ export default function Chat() {
   return (
     <div className="flex flex-col h-full bg-dark-bg relative">
         
-      {/* Header */}
-      <header className="h-16 border-b border-dark-border bg-dark-bg/80 backdrop-blur-md flex items-center px-6 shrink-0 z-10 sticky top-0">
+      {/* Header with Back Button */}
+      <header className="h-16 border-b border-dark-border bg-dark-bg/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-10 sticky top-0">
           <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-bold text-white shadow-lg shadow-brand-glow">AI</div>
+              <button 
+                onClick={() => navigate('/')}
+                className="flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-white bg-dark-surface hover:bg-dark-surface-hover px-3 py-1.5 rounded-lg border border-dark-border transition-all cursor-pointer mr-2"
+                title="Back to Landing Page"
+              >
+                  <ArrowLeft size={16} />
+                  <span>Home</span>
+              </button>
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-bold text-white shadow-lg shadow-brand-glow">V</div>
               <div>
-                  <h1 className="text-lg font-semibold tracking-tight">AI Jury</h1>
+                  <h1 className="text-lg font-semibold tracking-tight">Veritas AI</h1>
                   {sessionId && <p className="text-xs text-gray-500 font-mono">Session: {sessionId.split('-')[0]}</p>}
               </div>
           </div>
@@ -127,8 +135,8 @@ export default function Chat() {
         {!sessionState && !isPolling && (
             <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
                 <ShieldAlert size={64} className="mb-6 text-brand-primary/50" />
-                <h2 className="text-2xl font-bold mb-2">Welcome to AI Jury v2</h2>
-                <p className="max-w-md">Start a deliberation by entering a prompt below. The AI agents will debate and synthesize an accurate answer.</p>
+                <h2 className="text-2xl font-bold mb-2">Welcome to Veritas AI</h2>
+                <p className="max-w-md">Start a deliberation by entering a prompt below. Multi-LLM agents will debate and synthesize a verified consensus answer.</p>
             </div>
         )}
 
@@ -160,7 +168,7 @@ export default function Chat() {
                                     <div className="mt-6 border-t border-dark-border pt-4">
                                         <button 
                                             onClick={() => toggleVerdict(idx)}
-                                            className="flex items-center gap-2 text-sm text-brand-secondary hover:text-brand-primary transition-colors font-medium"
+                                            className="flex items-center gap-2 text-sm text-brand-secondary hover:text-brand-primary transition-colors font-medium cursor-pointer"
                                         >
                                             {expandedVerdict === idx ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                             {expandedVerdict === idx ? 'Hide Deliberation Details' : 'View Deliberation Details'}
@@ -257,7 +265,7 @@ export default function Chat() {
                   <textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Message AI Jury..."
+                    placeholder="Ask Veritas AI..."
                     className="w-full bg-transparent border-none outline-none resize-none p-4 max-h-[200px] min-h-[60px] text-[15px]"
                     rows={1}
                     onKeyDown={(e) => { 
@@ -270,12 +278,12 @@ export default function Chat() {
                   <button 
                     type="submit" 
                     disabled={!prompt.trim() || isPolling}
-                    className="p-3 bg-brand-primary rounded-xl hover:bg-brand-primary/90 transition-all disabled:opacity-50 disabled:hover:bg-brand-primary mb-1 mr-1 flex items-center justify-center shadow-lg hover:shadow-brand-glow"
+                    className="p-3 bg-brand-primary rounded-xl hover:bg-brand-primary/90 transition-all disabled:opacity-50 disabled:hover:bg-brand-primary mb-1 mr-1 flex items-center justify-center shadow-lg hover:shadow-brand-glow cursor-pointer"
                   >
                     <Send size={20} className="text-white" />
                   </button>
               </div>
-              <p className="text-center text-xs text-gray-500 mt-3">AI Jury synthesizes opinions from Gemini, Llama 3, and Claude.</p>
+              <p className="text-center text-xs text-gray-500 mt-3">Veritas AI synthesizes verified consensus answers using multi-model agentic deliberation.</p>
           </form>
       </div>
     </div>

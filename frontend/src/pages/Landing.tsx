@@ -1,12 +1,12 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Scale, BrainCircuit, ShieldCheck, MessageSquareText } from 'lucide-react';
+import { ShieldCheck, BrainCircuit, MessageSquareText, Sparkles } from 'lucide-react';
 
 export default function Landing() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] text-center space-y-12">
+    <div className="flex flex-col items-center justify-center min-h-[80vh] text-center space-y-12 px-4">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -14,8 +14,8 @@ export default function Landing() {
         className="space-y-6 max-w-3xl"
       >
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-primary/10 text-brand-primary border border-brand-primary/20 mb-4">
-          <Scale size={18} />
-          <span className="text-sm font-medium">The Next Evolution of AI Agents</span>
+          <Sparkles size={18} />
+          <span className="text-sm font-medium">Next-Generation Multi-LLM Truth Engine</span>
         </div>
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
           Where AI Models <br />
@@ -24,15 +24,15 @@ export default function Landing() {
           </span>
         </h1>
         <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-          Don't just trust one model. AI Jury orchestrates multiple AI agents to debate, verify evidence, and deliver one transparent verdict you can trust.
+          Don't rely on a single biased model. <strong>Veritas AI</strong> orchestrates multiple frontier AI models to extract claims, debate conflicts, verify web evidence, and deliver one bulletproof verdict.
         </p>
         
         <div className="pt-8">
           <button 
             onClick={() => navigate('/chat')}
-            className="px-8 py-4 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl font-semibold text-lg transition-all shadow-lg shadow-brand-primary/25 hover:shadow-brand-primary/40 hover:-translate-y-1"
+            className="px-8 py-4 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl font-semibold text-lg transition-all shadow-lg shadow-brand-primary/25 hover:shadow-brand-primary/40 hover:-translate-y-1 cursor-pointer"
           >
-            Start a Jury Session
+            Launch Veritas AI
           </button>
         </div>
       </motion.div>
@@ -45,18 +45,18 @@ export default function Landing() {
       >
         <FeatureCard 
           icon={<BrainCircuit className="text-brand-primary" size={32} />}
-          title="Parallel Orchestration"
-          desc="Dynamically routes your query to the best models based on complexity and cost."
+          title="Multi-LLM Orchestration"
+          desc="Routes queries across Meta Llama 3.3 70B, Llama 3.1 8B, and Qwen 2.5/3.6 in parallel."
         />
         <FeatureCard 
           icon={<MessageSquareText className="text-brand-secondary" size={32} />}
           title="Agentic Deliberation"
-          desc="Models debate conflicting claims courtroom-style to reach a true consensus."
+          desc="Models extract claims and debate contradictions in an automated consensus process."
         />
         <FeatureCard 
           icon={<ShieldCheck className="text-brand-accent" size={32} />}
-          title="Evidence Verification"
-          desc="Disputed claims are automatically fact-checked against trusted external sources."
+          title="Live Evidence Search"
+          desc="Disputed claims are cross-checked against real-time web search results to ensure zero hallucinations."
         />
       </motion.div>
     </div>
