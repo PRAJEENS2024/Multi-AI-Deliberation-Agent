@@ -111,7 +111,7 @@ export default function Chat() {
   return (
     <div className="flex flex-col h-full bg-dark-bg relative">
         
-      {/* Header with Back Button */}
+      {/* Header with Back Button & Persona Badge Bar */}
       <header className="h-16 border-b border-dark-border bg-dark-bg/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-10 sticky top-0">
           <div className="flex items-center gap-3">
               <button 
@@ -128,6 +128,15 @@ export default function Chat() {
                   {sessionId && <p className="text-xs text-gray-500 font-mono">Session: {sessionId.split('-')[0]}</p>}
               </div>
           </div>
+
+          {/* Persona Agents Active Panel */}
+          <div className="hidden lg:flex items-center gap-2 bg-dark-surface/60 border border-dark-border px-3 py-1.5 rounded-xl text-xs">
+              <span className="text-gray-400 font-medium mr-1">Active Jury:</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">🔍 Dr. Vance</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-pink-500/10 text-pink-400 border border-pink-500/20 font-medium">⚡ Cipher</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium">⚖️ Aura</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">👑 Veritas Chief</span>
+          </div>
       </header>
 
       {/* Chat Area */}
@@ -135,8 +144,8 @@ export default function Chat() {
         {!sessionState && !isPolling && (
             <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
                 <ShieldAlert size={64} className="mb-6 text-brand-primary/50" />
-                <h2 className="text-2xl font-bold mb-2">Welcome to Veritas AI</h2>
-                <p className="max-w-md">Start a deliberation by entering a prompt below. Multi-LLM agents will debate and synthesize a verified consensus answer.</p>
+                <h2 className="text-2xl font-bold mb-2">Welcome to Veritas AI Courtroom</h2>
+                <p className="max-w-md">Start a deliberation by entering a prompt below. 4 autonomous persona agents will cross-examine evidence and synthesize a verified verdict.</p>
             </div>
         )}
 
@@ -171,7 +180,7 @@ export default function Chat() {
                                             className="flex items-center gap-2 text-sm text-brand-secondary hover:text-brand-primary transition-colors font-medium cursor-pointer"
                                         >
                                             {expandedVerdict === idx ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                            {expandedVerdict === idx ? 'Hide Deliberation Details' : 'View Deliberation Details'}
+                                            {expandedVerdict === idx ? 'Hide Deliberation Details' : 'View Deliberation Details & Agent Debate'}
                                         </button>
                                         
                                         <AnimatePresence>
@@ -180,9 +189,9 @@ export default function Chat() {
                                                     initial={{ height: 0, opacity: 0 }}
                                                     animate={{ height: 'auto', opacity: 1 }}
                                                     exit={{ height: 0, opacity: 0 }}
-                                                    className="overflow-hidden mt-4"
+                                                    className="overflow-hidden mt-4 space-y-4"
                                                 >
-                                                    <div className="p-4 bg-dark-surface rounded-xl border border-dark-border mb-4">
+                                                    <div className="p-4 bg-dark-surface rounded-xl border border-dark-border">
                                                         <div className="flex items-center justify-between mb-2">
                                                             <span className="text-sm text-gray-400">Confidence Score</span>
                                                             <span className="text-lg font-bold text-brand-accent">{msg.verdict.confidence_score}%</span>
@@ -191,21 +200,44 @@ export default function Chat() {
                                                             <div className="bg-brand-accent h-full rounded-full" style={{ width: `${msg.verdict.confidence_score}%` }}></div>
                                                         </div>
                                                     </div>
+
+                                                    {/* Multi-Turn Courtroom Debate Transcripts */}
+                                                    {sessionState?.debate_turns?.length > 0 && (
+                                                        <div className="bg-dark-surface/80 border border-dark-border rounded-xl p-4 space-y-3">
+                                                            <h4 className="font-semibold text-brand-primary text-sm flex items-center gap-2">
+                                                                ⚔️ Courtroom Cross-Examination Dialogue
+                                                            </h4>
+                                                            <div className="space-y-2">
+                                                                {sessionState.debate_turns.map((turn: any, i: number) => (
+                                                                    <div key={i} className="text-xs bg-dark-bg/60 p-3 rounded-lg border border-dark-border/50">
+                                                                        <div className="flex items-center justify-between text-gray-400 mb-1">
+                                                                            <span className="font-semibold text-brand-secondary">Turn {turn.turn_number}: {turn.speaker_persona}</span>
+                                                                            {turn.target_persona && <span>targeting {turn.target_persona}</span>}
+                                                                        </div>
+                                                                        <p className="text-gray-200">{turn.argument}</p>
+                                                                        {turn.evidence && (
+                                                                            <p className="text-emerald-400 mt-1 font-mono text-[11px]">Verified Web Evidence: {turn.evidence}</p>
+                                                                        )}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                     
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-4">
-                                                            <h4 className="font-semibold text-green-400 mb-3 flex items-center gap-2 text-sm"><CheckCircle size={16}/> Consensus</h4>
+                                                            <h4 className="font-semibold text-green-400 mb-3 flex items-center gap-2 text-sm"><CheckCircle size={16}/> Consensus Claims</h4>
                                                             <ul className="space-y-2">
                                                                 {msg.verdict.consensus_claims?.map((c: any, i: number) => (
                                                                     <li key={i} className="text-xs text-gray-300 flex items-start gap-2">
                                                                         <span className="mt-1 w-1 h-1 rounded-full bg-green-400 shrink-0"></span>
-                                                                        {c.claim}
+                                                                        <span><strong>[{c.model}]</strong> {c.claim}</span>
                                                                     </li>
                                                                 ))}
                                                             </ul>
                                                         </div>
                                                         <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-4">
-                                                            <h4 className="font-semibold text-yellow-400 mb-3 flex items-center gap-2 text-sm"><AlertTriangle size={16}/> Disputed</h4>
+                                                            <h4 className="font-semibold text-yellow-400 mb-3 flex items-center gap-2 text-sm"><AlertTriangle size={16}/> Disputed Claims</h4>
                                                             {msg.verdict.disputed_claims?.length > 0 ? (
                                                                 <ul className="space-y-3">
                                                                     {msg.verdict.disputed_claims.map((d: any, i: number) => (

@@ -27,6 +27,28 @@ class SessionSummary(BaseModel):
     prompt: str
     status: str
 
+class AgentPersona(BaseModel):
+    id: str
+    name: str
+    role: str
+    avatar: str
+    model: str
+    color: str
+
+class AgentThought(BaseModel):
+    persona_id: str
+    persona_name: str
+    phase: str # Drafting, Cross-Exam, Rebuttal, Verdict
+    thought: str
+    timestamp: str
+
+class DebateTurn(BaseModel):
+    turn_number: int
+    speaker_persona: str
+    target_persona: Optional[str] = None
+    argument: str
+    evidence: Optional[str] = None
+
 class Claim(BaseModel):
     claim: str
     category: str # Fact, Recommendation, Assumption, Reasoning
@@ -66,6 +88,8 @@ class SessionState(BaseModel):
     extracted_claims: List[Claim] = []
     disputed_claims: List[DisputedClaim] = []
     debates: List[Dict[str, Any]] = []
+    debate_turns: List[DebateTurn] = []
+    agent_thoughts: List[AgentThought] = []
     verdict: Optional[FinalVerdict] = None
     logs: List[Dict[str, str]] = []
     history: List[Message] = []
