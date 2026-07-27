@@ -19,6 +19,8 @@ export default function Sidebar() {
       }
     };
     fetchSessions();
+    const interval = setInterval(fetchSessions, 2000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
