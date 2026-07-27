@@ -13,8 +13,8 @@ groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 # Use completely free open source models hosted on Groq to avoid any quota/billing issues
 AVAILABLE_MODELS = [
     "llama-3.3-70b-versatile",
-    "mixtral-8x7b-32768",
-    "gemma2-9b-it"
+    "llama-3.1-8b-instant",
+    "qwen/qwen3.6-27b"
 ]
 
 async def query_llm(model: str, prompt: str, system_instruction: str = "", response_format: str = "text") -> str:
@@ -26,11 +26,13 @@ async def query_llm(model: str, prompt: str, system_instruction: str = "", respo
     # Map the model if the orchestrator still passes old names
     actual_model = model
     if "gemini" in model:
-        actual_model = "gemma2-9b-it"
+        actual_model = "llama-3.3-70b-versatile"
     elif "claude" in model:
-        actual_model = "mixtral-8x7b-32768"
+        actual_model = "llama-3.1-8b-instant"
     elif "llama3-70b-8192" in model:
         actual_model = "llama-3.3-70b-versatile"
+    elif "mixtral" in model or "gemma" in model:
+        actual_model = "qwen/qwen3.6-27b"
     
     for attempt in range(max_retries):
         try:
