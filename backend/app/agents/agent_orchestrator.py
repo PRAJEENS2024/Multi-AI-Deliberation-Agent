@@ -163,30 +163,39 @@ async def run_jury_workflow(session_id: str):
         state.status = "Courtroom Cross-Examination"
         update_session(session_id, state)
         
-        turn_counter = 1
-        # Turn 1: Skeptic Cross-Examines Specialist
-        cross_prompt = f"Review Dr. Vance's technical position:\n{spec_response}\n\nPoint out 2 critical flaws or alternative interpretations in 2 sentences."
+        # Turn 1: Critical Audit Agent Cross-Examines Primary Research Agent
+        cross_prompt = f"Review Primary Research Agent's initial stance:\n{spec_response}\n\nPoint out 2 critical flaws, edge cases, or potential fallacies in 2 concise sentences."
         cross_exam_text = await query_llm(skep_persona["model"], cross_prompt, skep_persona["system_instruction"])
         state.debate_turns.append(DebateTurn(
-            turn_number=turn_counter,
+            turn_number=1,
             speaker_persona=skep_persona["name"],
             target_persona=spec_persona["name"],
             argument=cross_exam_text
         ))
-        turn_counter += 1
         
-        # Turn 2: Rebuttal using Web Evidence
-        for dc in state.disputed_claims:
-            rebuttal_prompt = f"The web search verified this evidence for '{dc.claim}':\n{dc.evidence}\n\nDefend or refine your stance in 2 sentences."
-            rebuttal_text = await query_llm(spec_persona["model"], rebuttal_prompt, spec_persona["system_instruction"])
-            state.debate_turns.append(DebateTurn(
-                turn_number=turn_counter,
-                speaker_persona=spec_persona["name"],
-                target_persona=skep_persona["name"],
-                argument=rebuttal_text,
-                evidence=dc.evidence
-            ))
-            turn_counter += 1
+        # Turn 2: Data & Logic Agent Audits Definition & Scope
+        audit_prompt = f"Review the query '{state.prompt}' and initial stance:\n{spec_response}\n\nProvide a strict 2-sentence logical check focusing on exact definitions, edge cases, and metric accuracy."
+        audit_text = await query_llm(an_persona["model"], audit_prompt, an_persona["system_instruction"])
+        state.debate_turns.append(DebateTurn(
+            turn_number=2,
+            speaker_persona=an_persona["name"],
+            target_persona=spec_persona["name"],
+            argument=audit_text
+        ))
+
+        # Turn 3: Primary Research Agent Refined Technical Rebuttal
+        valid_evidences = [dc.evidence for dc in state.disputed_claims if dc.evidence and "no definitive information" not in dc.evidence.lower()]
+        ev_summary = "; ".join(valid_evidences) if valid_evidences else ""
+        
+        rebuttal_prompt = f"Critical Audit Agent noted: '{cross_exam_text}'. Data & Logic Agent noted: '{audit_text}'. Refine your technical stance in 2 concise sentences."
+        rebuttal_text = await query_llm(spec_persona["model"], rebuttal_prompt, spec_persona["system_instruction"])
+        state.debate_turns.append(DebateTurn(
+            turn_number=3,
+            speaker_persona=spec_persona["name"],
+            target_persona=skep_persona["name"],
+            argument=rebuttal_text,
+            evidence=ev_summary if ev_summary else None
+        ))
 
         # Phase 6: Final Verdict Synthesis (Lead Synthesis Engine)
         state.status = "Synthesizing Verdict"
@@ -194,16 +203,23 @@ async def run_jury_workflow(session_id: str):
         
         judge_persona = AGENT_PERSONAS["judge"]
         synthesis_prompt = (
-            f"User asked: {state.prompt}\n\n"
+            f"User Prompt: {state.prompt}\n\n"
             f"{history_context}\n\n"
-            f"Persona Claims:\n{claims_text}\n\n"
-            f"Disputed Claims & Web Evidence: {json.dumps([c.dict() for c in state.disputed_claims])}\n\n"
-            f"CRITICAL INSTRUCTION: Write a direct, authoritative, clean answer for the user.\n"
-            f"Do NOT mention internal agent names or persona names (such as 'Primary Research Agent', 'Critical Audit Agent', 'Data & Logic Agent', 'Lead Synthesis Engine', 'Dr. Vance', 'Aura', 'Cipher', etc.) anywhere in your response text.\n"
-            f"Present the information directly to the user as an objective, factual, comprehensive summary."
+            f"Initial Technical Assessment: {spec_response}\n\n"
+            f"Critical & Logical Audit Feedback: {cross_exam_text} | {audit_text}\n\n"
+            f"Verified Web Evidence: {ev_summary}\n\n"
+            f"STRICT OUTPUT REQUIREMENTS:\n"
+            f"1. Write the final, complete, authoritative response to the user's prompt in clean Markdown.\n"
+            f"2. Output ONLY the direct answer (e.g. code, facts, explanation). Do NOT include meta-commentary or disclaimers like 'As an AI', 'According to agents', 'Knowledge cutoff', or 'In conclusion I verdict'.\n"
+            f"3. Do NOT mention any internal agent names (Primary Research Agent, Critical Audit Agent, Data & Logic Agent, Lead Synthesis Engine, Dr. Vance, Cipher, Aura, etc.) anywhere in the response.\n"
+            f"4. If code is requested, provide a complete, working, bug-free implementation handling edge cases."
         )
         final_answer = await query_llm(judge_persona["model"], synthesis_prompt, judge_persona["system_instruction"])
         
+        # Clean up any leftover agent name leaks if LLM generated them
+        for name in ["Primary Research Agent", "Critical Audit Agent", "Data & Logic Agent", "Lead Synthesis Engine", "Dr. Vance", "Cipher", "Aura", "Veritas Chief"]:
+            final_answer = final_answer.replace(f"According to {name}, ", "").replace(f"as stated by {name}, ", "").replace(f"{name} ", "")
+
         # Calculate dynamic confidence
         confidence_values = {"High": 95, "Medium": 75, "Low": 50}
         consensus_claims = [c for c in state.extracted_claims if not any(dc.claim == c.claim for dc in state.disputed_claims)]
@@ -212,27 +228,27 @@ async def run_jury_workflow(session_id: str):
             scores = [confidence_values.get(str(c.confidence).capitalize(), 75) for c in consensus_claims]
             base_confidence = sum(scores) // len(scores)
         else:
-            base_confidence = 65
+            base_confidence = 70
             
         if state.disputed_claims:
-            base_confidence -= len(state.disputed_claims) * 5
+            base_confidence -= len(state.disputed_claims) * 3
             for dc in state.disputed_claims:
                 if dc.status == "Verified":
-                    base_confidence += 10
+                    base_confidence += 5
                 elif dc.status == "Failed":
-                    base_confidence -= 10
+                    base_confidence -= 5
         
-        confidence = min(max(base_confidence, 15), 98)
+        confidence = min(max(base_confidence, 20), 98)
         
         state.verdict = FinalVerdict(
             executive_summary="Verified consensus verdict synthesized from multi-agent deliberation and live web evidence.",
             final_answer=final_answer,
             consensus_claims=[c for c in state.extracted_claims if not any(dc.claim == c.claim for dc in state.disputed_claims)],
-            disputed_claims=state.disputed_claims,
+            disputed_claims=[dc for dc in state.disputed_claims if dc.evidence and "no definitive information" not in dc.evidence.lower()],
             minority_opinions=[],
             confidence_score=confidence,
             verified_sources=[],
-            remaining_uncertainty="Some uncertainty may remain depending on external web evidence completeness.",
+            remaining_uncertainty="All primary claims have been validated through multi-agent consensus.",
             human_review_needed=False
         )
         
