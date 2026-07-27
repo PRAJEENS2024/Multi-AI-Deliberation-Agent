@@ -188,7 +188,7 @@ async def run_jury_workflow(session_id: str):
             ))
             turn_counter += 1
 
-        # Phase 6: Final Verdict Synthesis (Veritas Chief)
+        # Phase 6: Final Verdict Synthesis (Lead Synthesis Engine)
         state.status = "Synthesizing Verdict"
         update_session(session_id, state)
         
@@ -198,7 +198,9 @@ async def run_jury_workflow(session_id: str):
             f"{history_context}\n\n"
             f"Persona Claims:\n{claims_text}\n\n"
             f"Disputed Claims & Web Evidence: {json.dumps([c.dict() for c in state.disputed_claims])}\n\n"
-            f"Provide a comprehensive, final authoritative answer that resolves any disputes using the verified evidence."
+            f"CRITICAL INSTRUCTION: Write a direct, authoritative, clean answer for the user.\n"
+            f"Do NOT mention internal agent names or persona names (such as 'Primary Research Agent', 'Critical Audit Agent', 'Data & Logic Agent', 'Lead Synthesis Engine', 'Dr. Vance', 'Aura', 'Cipher', etc.) anywhere in your response text.\n"
+            f"Present the information directly to the user as an objective, factual, comprehensive summary."
         )
         final_answer = await query_llm(judge_persona["model"], synthesis_prompt, judge_persona["system_instruction"])
         
@@ -223,7 +225,7 @@ async def run_jury_workflow(session_id: str):
         confidence = min(max(base_confidence, 15), 98)
         
         state.verdict = FinalVerdict(
-            executive_summary="Veritas Chief has evaluated persona agent stances, cross-examination debates, and live web evidence to render the final synthesized verdict.",
+            executive_summary="Verified consensus verdict synthesized from multi-agent deliberation and live web evidence.",
             final_answer=final_answer,
             consensus_claims=[c for c in state.extracted_claims if not any(dc.claim == c.claim for dc in state.disputed_claims)],
             disputed_claims=state.disputed_claims,

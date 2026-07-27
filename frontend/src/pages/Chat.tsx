@@ -131,11 +131,11 @@ export default function Chat() {
 
           {/* Persona Agents Active Panel */}
           <div className="hidden lg:flex items-center gap-2 bg-dark-surface/60 border border-dark-border px-3 py-1.5 rounded-xl text-xs">
-              <span className="text-gray-400 font-medium mr-1">Active Jury:</span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">🔍 Dr. Vance</span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-pink-500/10 text-pink-400 border border-pink-500/20 font-medium">⚡ Cipher</span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium">⚖️ Aura</span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">👑 Veritas Chief</span>
+              <span className="text-gray-400 font-medium mr-1">Active Jury Panel:</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">🔍 Primary Research</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-pink-500/10 text-pink-400 border border-pink-500/20 font-medium">⚡ Critical Audit</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium">⚖️ Data & Logic</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">👑 Lead Synthesis</span>
           </div>
       </header>
 
