@@ -2,7 +2,8 @@ fastapi
 uvicorn
 pydantic
 python-dotenv
-google-genai
 duckduckgo-search
 groq
-anthropic
+langgraph
+langchain-core
+reportlab

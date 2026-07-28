@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Chat from './pages/Chat';
 import Login from './pages/Login';
+import Dashboard from './components/Dashboard';
 import Sidebar from './components/Sidebar';
 import './index.css';
 
@@ -19,6 +20,7 @@ function App() {
                   <Route path="/" element={<Landing />} />
                   <Route path="/chat" element={<Chat />} />
                   <Route path="/chat/:sessionId" element={<Chat />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
                 </Routes>
               </main>
             </>
