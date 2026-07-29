@@ -1,38 +1,52 @@
 {
   "testuser_new": {
     "password": "password123",
-    "email": "testuser_new@example.com"
+    "email": "testuser_new@example.com",
+    "user_id": "testuser_new"
   },
   "testuser_jetski": {
     "password": "testpassword123",
-    "email": "testuser_jetski@example.com"
+    "email": "testuser_jetski@example.com",
+    "user_id": "testuser_jetski"
   },
   "prajeen": {
     "password": "123456",
-    "email": "prajeensenthilkumar.24@gmail.com"
+    "email": "prajeensenthilkumar.24@gmail.com",
+    "user_id": "prajeen"
   },
   "bala": {
     "password": "123456",
-    "email": "prajeensenthilkumar.24@gmail.com"
+    "email": "prajeensenthilkumar.24@gmail.com",
+    "user_id": "bala"
   },
   "abhi": {
     "password": "123456",
-    "email": "prajeensenthilkumar.24@gmail.com"
+    "email": "prajeensenthilkumar.24@gmail.com",
+    "user_id": "abhi"
   },
   "agentx": {
     "password": "123456",
-    "email": "abhinavkumaran2006@gmail.com"
+    "email": "abhinavkumaran2006@gmail.com",
+    "user_id": "agentx"
   },
   "balasri": {
     "password": "123456",
-    "email": "balasrisabhari.b2024ece@sece.ac.in"
+    "email": "balasrisabhari.b2024ece@sece.ac.in",
+    "user_id": "balasri"
   },
   "prajeens": {
     "password": "123456",
-    "email": "prajeen114@gmail.com"
+    "email": "prajeen114@gmail.com",
+    "user_id": "prajeens"
   },
   "tamilselvan": {
     "password": "123456",
-    "email": "tamilselvan.s@sece.ac.in"
+    "email": "tamilselvan.s@sece.ac.in",
+    "user_id": "tamilselvan"
+  },
+  "prajeensece": {
+    "password": "123456",
+    "email": "prajeen.s2024ece@sece.ac.in",
+    "user_id": "42599959-db87-4182-8bbc-17012f285485"
   }
 }

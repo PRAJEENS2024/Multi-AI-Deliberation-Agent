@@ -102,7 +102,6 @@ export default function Chat() {
   useEffect(() => {
     if (routeSessionId && routeSessionId !== sessionId) {
       setSessionId(routeSessionId);
-      setPendingMessages([]);
       setIsPolling(true);
     } else if (!routeSessionId) {
       setSessionId(null);
@@ -184,28 +183,33 @@ export default function Chat() {
   };
 
   useEffect(() => {
-    let interval: number;
+    let interval: any;
     if (isPolling && sessionId) {
-      interval = setInterval(async () => {
+      const fetchState = async () => {
         try {
           const res = await axios.get(`${API_URL}/session/${sessionId}`);
-          setSessionState(res.data);
-          setPendingMessages([]);
-          if (res.data.status === 'Completed' || res.data.status === 'Error') {
-            setIsPolling(false);
-            if (res.data.status === 'Error') {
-              showToast('An error occurred during deliberation. Please try again.', 'error');
+          if (res.data) {
+            setSessionState(res.data);
+            setPendingMessages([]);
+            if (res.data.status === 'Completed' || res.data.status === 'Error') {
+              setIsPolling(false);
+              if (res.data.status === 'Error') {
+                showToast('An error occurred during deliberation. Please try again.', 'error');
+              }
             }
           }
         } catch (err) {
           console.error(err);
           setIsPolling(false);
-          showToast('Lost connection to server. Please refresh.', 'error');
         }
-      }, 1000) as unknown as number;
+      };
+
+      fetchState();
+      interval = setInterval(fetchState, 1200);
     }
     return () => clearInterval(interval);
   }, [isPolling, sessionId, showToast]);
+
 
   const displayMessages = [];
   if (pendingMessages.length > 0 && !sessionState) {
