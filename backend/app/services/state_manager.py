@@ -47,9 +47,17 @@ def _load_data_from_disk():
             with open(SESSIONS_FILE, "r", encoding="utf-8") as f:
                 raw_sessions = json.load(f)
                 for sid, sdata in raw_sessions.items():
+                    # Auto-migrate/backfill user_id from user_email if user_id is missing or None
+                    if not sdata.get("user_id") and sdata.get("user_email"):
+                        em = sdata.get("user_email").lower().strip()
+                        for uname, udata in users.items():
+                            if isinstance(udata, dict) and udata.get("email") and udata.get("email").lower().strip() == em:
+                                sdata["user_id"] = uname
+                                break
                     sessions[sid] = SessionState(**sdata)
         except Exception as e:
             print(f"Error loading sessions.json: {e}")
+
 
     if os.path.exists(EMAIL_CONFIG_FILE):
         try:
@@ -148,11 +156,18 @@ def update_user_profile(username_or_id: str, updates: dict) -> UserProfile:
     _save_data_to_disk()
     return UserProfile(**cur_dict)
 
-def get_user_email(username: str) -> Optional[str]:
-    user = users.get(username)
+def get_user_email(username_or_id: str) -> Optional[str]:
+    user = users.get(username_or_id)
     if isinstance(user, dict):
         return user.get("email")
+    for u_key, u_val in users.items():
+        if isinstance(u_val, dict):
+            if u_val.get("user_id") == username_or_id or u_key == username_or_id:
+                return u_val.get("email")
+            if u_val.get("email") and u_val.get("email").lower().strip() == str(username_or_id).lower().strip():
+                return u_val.get("email")
     return None
+
 
 def create_session(prompt: str, user_email: str = None, send_email: bool = False, user_id: str = None) -> str:
     session_id = str(uuid.uuid4())

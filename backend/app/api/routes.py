@@ -1,7 +1,9 @@
 import json
 import os
+from typing import List, Optional
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Response
-from typing import List
+
+
 
 from app.models.schemas import (
     QueryRequest, QueryResponse, SessionState, Message,
