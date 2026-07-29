@@ -15,19 +15,44 @@ class SignupRequest(BaseModel):
 class AuthResponse(BaseModel):
     success: bool
     token: Optional[str] = None
+    user_id: Optional[str] = None
     detail: Optional[str] = None
     email: Optional[str] = None
+    username: Optional[str] = None
+
+# ── User Profile ──────────────────────────────────────────────────────────────
+class UserProfile(BaseModel):
+    user_id: str
+    username: str
+    email: str
+    full_name: Optional[str] = ""
+    avatar_url: Optional[str] = ""
+    theme_preference: str = "dark"
+    groq_api_key: Optional[str] = ""
+    notifications_enabled: bool = True
+    email_reports_enabled: bool = True
+
+class UpdateProfileRequest(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    avatar_url: Optional[str] = None
+    password: Optional[str] = None
+    groq_api_key: Optional[str] = None
+    theme_preference: Optional[str] = None
+    notifications_enabled: Optional[bool] = None
 
 # ── Query ─────────────────────────────────────────────────────────────────────
 class QueryRequest(BaseModel):
     prompt: str = Field(..., description="The user's question or prompt.")
     session_id: Optional[str] = None
+    user_id: Optional[str] = Field(None, description="User ID for multi-tenant data isolation.")
     email: Optional[str] = Field(None, description="Email to send the final report to.")
     send_email: bool = Field(False, description="Whether to email the final report.")
 
 class QueryResponse(BaseModel):
     session_id: str
     status: str
+
 
 # ── Agent Pipeline ────────────────────────────────────────────────────────────
 class AgentStatus(BaseModel):
@@ -121,6 +146,7 @@ class TimelinePoint(BaseModel):
 class SessionState(BaseModel):
     session_id: str
     prompt: str
+    user_id: Optional[str] = None
     status: str = "Initializing"
     user_email: Optional[str] = None
     send_email: bool = False
@@ -143,8 +169,10 @@ class SessionSummary(BaseModel):
     session_id: str
     prompt: str
     status: str
+    user_id: Optional[str] = None
     confidence_score: Optional[int] = None
     created_at: Optional[str] = None
+
 
 # ── Email Settings ────────────────────────────────────────────────────────────
 class SendReportRequest(BaseModel):

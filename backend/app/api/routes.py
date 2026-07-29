@@ -8,12 +8,15 @@ from app.models.schemas import (
     LoginRequest, SignupRequest, AuthResponse, SessionSummary,
     EmailSettingsRequest, ExportRequest, ExportResponse,
     SaveEmailConfigRequest, EmailConfig, AgentMetrics, SendReportRequest,
+    UserProfile, UpdateProfileRequest,
 )
 from app.services.state_manager import (
     create_session, get_session, update_session,
     get_all_sessions, register_user, authenticate_user, get_user_email,
     get_email_config, save_email_config, get_agent_metrics,
+    get_user_profile, update_user_profile,
 )
+
 from app.agents.agent_orchestrator import run_jury_workflow
 
 import base64
@@ -34,6 +37,7 @@ async def submit_query(request: QueryRequest, background_tasks: BackgroundTasks)
             state.history.append(Message(role="assistant", content=state.verdict.final_answer, verdict=state.verdict))
 
         state.prompt              = request.prompt
+        state.user_id             = request.user_id or state.user_id
         state.status              = "Initializing"
         state.extracted_claims    = []
         state.disputed_claims     = []
@@ -55,6 +59,7 @@ async def submit_query(request: QueryRequest, background_tasks: BackgroundTasks)
             prompt     = request.prompt,
             user_email = request.email,
             send_email = request.send_email,
+            user_id    = request.user_id,
         )
 
     background_tasks.add_task(run_jury_workflow, session_id)
@@ -71,8 +76,9 @@ async def get_session_state(session_id: str):
 
 
 @router.get("/sessions", response_model=List[SessionSummary])
-async def list_sessions():
-    return get_all_sessions()
+async def list_sessions(user_id: Optional[str] = None):
+    return get_all_sessions(user_id=user_id)
+
 
 
 # ── Export Report ─────────────────────────────────────────────────────────────
@@ -366,24 +372,45 @@ async def signup(request: SignupRequest):
         raise HTTPException(status_code=400, detail="Username and password are required")
     if not request.email or "@" not in request.email:
         raise HTTPException(status_code=400, detail="A valid email address is required")
-    success, msg = register_user(request.username, request.password, request.email)
+    success, msg, user_id = register_user(request.username, request.password, request.email)
     if success:
-        return AuthResponse(success=True, detail=msg, token=f"token-{request.username}")
+        return AuthResponse(
+            success=True,
+            detail=msg,
+            token=f"token-{user_id or request.username}",
+            user_id=user_id or request.username,
+            username=request.username,
+            email=request.email,
+        )
     raise HTTPException(status_code=400, detail=msg)
 
 
 @router.post("/auth/login", response_model=AuthResponse)
 async def login(request: LoginRequest):
-    if authenticate_user(request.username, request.password):
-        user_email = get_user_email(request.username) or ""
+    ok, email, user_id = authenticate_user(request.username, request.password)
+    if ok:
+        user_email = email or get_user_email(request.username) or ""
+        uid = user_id or request.username
         return AuthResponse(
             success=True,
-            token=f"token-{request.username}",
-            detail=json.dumps({"email": user_email}),
+            token=f"token-{uid}",
+            user_id=uid,
+            username=request.username,
+            detail=json.dumps({"email": user_email, "user_id": uid}),
             email=user_email
         )
     raise HTTPException(status_code=401, detail="Invalid username or password")
 
+
+# ── User Profile ──────────────────────────────────────────────────────────────
+@router.get("/profile/{username_or_id}", response_model=UserProfile)
+async def get_profile(username_or_id: str):
+    return get_user_profile(username_or_id)
+
+
+@router.put("/profile/{username_or_id}", response_model=UserProfile)
+async def update_profile(username_or_id: str, request: UpdateProfileRequest):
+    return update_user_profile(username_or_id, request.model_dump(exclude_unset=True))
 
 
 # ── Email Configuration ───────────────────────────────────────────────────────
@@ -434,6 +461,7 @@ async def test_email_config(config: SaveEmailConfigRequest):
 
 # ── Agent Metrics ─────────────────────────────────────────────────────────────
 @router.get("/metrics", response_model=AgentMetrics)
-async def get_metrics():
-    """Get aggregate agent performance metrics."""
-    return get_agent_metrics()
+async def get_metrics(user_id: Optional[str] = None):
+    """Get aggregate agent performance metrics scoped by user_id."""
+    return get_agent_metrics(user_id=user_id)
+

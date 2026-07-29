@@ -38,10 +38,10 @@ export default function Login() {
             localStorage.setItem('user_email', userEmail);
           }
           localStorage.setItem('username', username);
+          localStorage.setItem('user_id', res.data.user_id || username);
           navigate('/chat');
         }
       } else {
-        // Signup with email
         if (!email || !email.includes('@')) {
           setError('Please enter a valid email address');
           setIsLoading(false);
@@ -52,10 +52,12 @@ export default function Login() {
           localStorage.setItem('auth_token', res.data.token || `token-${username}`);
           localStorage.setItem('user_email', email);
           localStorage.setItem('username', username);
+          localStorage.setItem('user_id', res.data.user_id || username);
           setSuccessMsg('Account created successfully! Redirecting...');
           setTimeout(() => navigate('/chat'), 800);
         }
       }
+
     } catch (err: any) {
       setError(err.response?.data?.detail || (isLoginMode ? 'Invalid credentials' : 'Registration failed'));
     } finally {

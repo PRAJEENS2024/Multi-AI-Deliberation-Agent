@@ -1,42 +1,83 @@
 @import "tailwindcss";
 
 @theme {
-  --color-dark-bg: #09090b;
-  --color-dark-surface: #18181b;
-  --color-dark-surface-hover: #27272a;
-  --color-dark-border: #27272a;
-  --color-brand-primary: #8b5cf6;
-  --color-brand-secondary: #3b82f6;
-  --color-brand-accent: #10b981;
-  --color-brand-glow: rgba(139, 92, 246, 0.5);
-  
-  --animate-pulse-slow: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --color-midnight-bg: #070A14;
+  --color-midnight-surface: #0B1020;
+  --color-midnight-card: #111827;
+  --color-midnight-border: rgba(255, 255, 255, 0.08);
+  --color-brand-indigo: #312E81;
+  --color-brand-violet: #8B5CF6;
+  --color-brand-cyan: #06B6D4;
+  --color-brand-emerald: #10B981;
+  --color-brand-amber: #F59E0B;
 }
 
-@keyframes pulse-slow {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .7; }
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+    border-color: rgba(6, 182, 212, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+    border-color: rgba(139, 92, 246, 0.9);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 body {
-  @apply bg-dark-bg text-gray-100 font-sans antialiased selection:bg-brand-primary/30;
+  background-color: #070A14;
+  color: #F3F4F6;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  antialiased: true;
+  selection-background-color: rgba(139, 92, 246, 0.3);
 }
 
 .glass-panel {
-  @apply bg-dark-surface/60 backdrop-blur-xl border border-dark-border rounded-2xl shadow-2xl;
+  background: rgba(11, 16, 32, 0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
 }
 
-/* Custom Scrollbar for Chat */
+.glass-card {
+  background: rgba(17, 24, 39, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  transition: all 0.2s ease-in-out;
+}
+
+.glass-card:hover {
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+}
+
+.running-glow {
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+.shimmer-loader {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.03) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3f3f46;
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #52525b;
+  background: rgba(139, 92, 246, 0.4);
 }
