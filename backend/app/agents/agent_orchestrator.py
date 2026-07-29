@@ -47,7 +47,9 @@ def _ts() -> str:
 def _parse_json(raw: str) -> any:
     if not raw or not isinstance(raw, str):
         return {}
-    cleaned = raw.strip()
+    import re
+    cleaned = re.sub(r'<think>.*?</think>', '', raw, flags=re.DOTALL)
+    cleaned = re.sub(r'</?think>', '', cleaned).strip()
     for fence in ("```json", "```"):
         if cleaned.startswith(fence):
             cleaned = cleaned[len(fence):]
@@ -59,7 +61,6 @@ def _parse_json(raw: str) -> any:
     try:
         return json.loads(cleaned)
     except Exception:
-        import re
         match = re.search(r'(\{.*\}|\[.*\])', cleaned, re.DOTALL)
         if match:
             try:
@@ -67,6 +68,7 @@ def _parse_json(raw: str) -> any:
             except Exception:
                 pass
         return {}
+
 
 
 

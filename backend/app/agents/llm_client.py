@@ -130,6 +130,15 @@ AGENT_PERSONAS = {
 }
 
 
+import re
+
+def _clean_llm_response(text: str) -> str:
+    if not text:
+        return ""
+    cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
+    cleaned = re.sub(r'</?think>', '', cleaned)
+    return cleaned.strip()
+
 async def query_llm(
     model: str,
     prompt: str,
@@ -165,12 +174,13 @@ async def query_llm(
                     if system_instruction:
                         messages.append({"role": "system", "content": system_instruction})
                     messages.append({"role": "user", "content": prompt})
-                    return groq_client.chat.completions.create(
+                    res = groq_client.chat.completions.create(
                         model=m,
                         messages=messages,
                         response_format={"type": "json_object"} if response_format == "json" else None,
                         temperature=temperature,
                     ).choices[0].message.content
+                    return _clean_llm_response(res)
 
                 return await asyncio.to_thread(_call)
 
@@ -185,6 +195,7 @@ async def query_llm(
                     if attempt < 1:
                         await asyncio.sleep(2)
                         continue
+
 
 
     return "{}" if response_format == "json" else "I analyzed your query, but the rate limit for the primary 70B model was temporarily reached. Please ask again in a moment for a full deliberation."
