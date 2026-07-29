@@ -150,26 +150,41 @@ async def query_llm(
             actual_model = val
             break
 
-    for attempt in range(3):
-        try:
-            def _call():
-                messages = []
-                if system_instruction:
-                    messages.append({"role": "system", "content": system_instruction})
-                messages.append({"role": "user", "content": prompt})
-                return groq_client.chat.completions.create(
-                    model=actual_model,
-                    messages=messages,
-                    response_format={"type": "json_object"} if response_format == "json" else None,
-                    temperature=temperature,
-                ).choices[0].message.content
+    # Build automatic fallback chain if a model hits Groq daily 429 rate limits
+    fallback_chain = [actual_model]
+    if actual_model != "llama-3.1-8b-instant":
+        fallback_chain.append("llama-3.1-8b-instant")
+    if actual_model != "qwen/qwen3.6-27b":
+        fallback_chain.append("qwen/qwen3.6-27b")
 
-            return await asyncio.to_thread(_call)
+    for current_model in fallback_chain:
+        for attempt in range(2):
+            try:
+                def _call(m=current_model):
+                    messages = []
+                    if system_instruction:
+                        messages.append({"role": "system", "content": system_instruction})
+                    messages.append({"role": "user", "content": prompt})
+                    return groq_client.chat.completions.create(
+                        model=m,
+                        messages=messages,
+                        response_format={"type": "json_object"} if response_format == "json" else None,
+                        temperature=temperature,
+                    ).choices[0].message.content
 
-        except Exception as e:
-            err = str(e).lower()
-            if ("429" in err or "rate limit" in err) and attempt < 2:
-                await asyncio.sleep(4 * (attempt + 1))
-                continue
-            print(f"LLM Error ({actual_model}): {e}")
-            return "{}" if response_format == "json" else f"[Agent error: {str(e)}]"
+                return await asyncio.to_thread(_call)
+
+            except Exception as e:
+                err = str(e).lower()
+                if "429" in err or "rate limit" in err or "rate_limit" in err:
+                    print(f"⚠️ Groq 429 Rate Limit for model '{current_model}'. Switching to fallback model...")
+                    await asyncio.sleep(1)
+                    break  # Try next model in fallback_chain
+                else:
+                    print(f"LLM Error ({current_model}): {e}")
+                    if attempt < 1:
+                        await asyncio.sleep(2)
+                        continue
+
+    return "{}" if response_format == "json" else "I analyzed your query, but the rate limit for the primary 70B model was temporarily reached. Please ask again in a moment for a full deliberation."
+
