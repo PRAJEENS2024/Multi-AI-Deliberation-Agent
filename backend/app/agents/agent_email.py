@@ -601,6 +601,8 @@ The complete report with full agent transcripts, fact checks, and bias audit is 
 
         safe_name = "".join(c if c.isalnum() or c in " _-" else "_" for c in prompt[:40]).strip()
 
+        from email.mime.application import MIMEApplication
+
         # Attach PDF Report
         pdf_bytes = _build_pdf(
             prompt=prompt,
@@ -611,9 +613,7 @@ The complete report with full agent transcripts, fact checks, and bias audit is 
             consensus_claims=consensus_claims,
             disputed_claims=disputed_claims,
         )
-        pdf_part = MIMEBase("application", "pdf")
-        pdf_part.set_payload(pdf_bytes)
-        encoders.encode_base64(pdf_part)
+        pdf_part = MIMEApplication(pdf_bytes, Name=f"AI_Jury_Report_{safe_name}.pdf")
         pdf_part.add_header("Content-Disposition", "attachment", filename=f"AI_Jury_Report_{safe_name}.pdf")
         msg.attach(pdf_part)
 
@@ -627,11 +627,10 @@ The complete report with full agent transcripts, fact checks, and bias audit is 
             consensus_claims=consensus_claims,
             disputed_claims=disputed_claims,
         )
-        docx_part = MIMEBase("application", "vnd.openxmlformats-officedocument.wordprocessingml.document")
-        docx_part.set_payload(docx_bytes)
-        encoders.encode_base64(docx_part)
+        docx_part = MIMEApplication(docx_bytes, Name=f"AI_Jury_Report_{safe_name}.docx")
         docx_part.add_header("Content-Disposition", "attachment", filename=f"AI_Jury_Report_{safe_name}.docx")
         msg.attach(docx_part)
+
 
         sent = False
         last_err = ""
