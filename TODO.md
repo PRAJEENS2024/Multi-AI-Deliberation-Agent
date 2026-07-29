@@ -1,30 +1,46 @@
-# AI Jury - Bug Fixes & Improvements
+# AI Jury - Authentication & Email Enhancement Plan ✅
 
-## Step 1: Remove Pricing Section from Landing Page
-- [x] Remove `pricingPlans` array from `Landing.tsx`
-- [x] Remove the "View Pricing" button in the hero section
-- [x] Remove the pricing section HTML block
+## Backend Changes - ✅ Complete
 
-## Step 2: Fix AgentFlowDiagram Email Agent ID Mismatch
-- [x] Change `'email_dispatch'` to `'email_agent'` in `AgentFlowDiagram.tsx`
+### Step 1: schemas.py ✅
+- [x] Make `email` required in `SignupRequest`
+- [x] Add `SendReportRequest` schema
 
-## Step 3: Fix Email Config Usage
-- [x] Import `get_email_config` from state_manager in `agent_email.py`
-- [x] Update `compose_and_send_email()` to use saved SMTP config with env var fallback
-- [x] Added `use_tls` support from saved config
-- [x] Added dynamic `sender_name` from saved config
+### Step 2: state_manager.py ✅
+- [x] Store email with user registration (users dict: username -> {password, email})
+- [x] Add `get_user_email(username)` function
+- [x] Added backward compatibility for old user entries
 
-## Step 4: Add User-Facing Error Feedback
-- [x] Add ToastNotification component to Chat.tsx
-- [x] Show error messages when API fails (connection errors, backend down)
-- [x] Show error when session processing fails
+### Step 3: agent_email.py ✅
+- [x] Fix PDF text colors: changed from light (#f4f4f5) to dark (#1e293b) for readability on white paper
+- [x] Add DOCX generation function `build_docx_report()`
+- [x] Updated error message to mention default sender email
 
-## Step 5: Fix Chat Message Display for New Sessions
-- [x] Add optimistic message display for first query
-- [x] Add `pendingMessages` state for instant user feedback
-- [x] Improve polling logic to handle errors gracefully
+### Step 4: routes.py ✅
+- [x] Update signup endpoint to require & store email
+- [x] Update login endpoint to return user email in detail
+- [x] Add `/api/send-report-email` endpoint (sends PDF to registered email)
+- [x] Add `/api/export/download-docx` endpoint for DOCX export
 
-## Step 6: Verify build
-- [x] Frontend Vite build - SUCCESS (no errors)
-- [ ] Start backend server
+### Step 5: requirements.txt ✅
+- [x] Add `python-docx` for DOCX generation
+
+## Frontend Changes - ✅ Complete
+
+### Step 6: Login.tsx ✅
+- [x] Add email input field for signup mode
+- [x] Store username + email in localStorage after auth
+
+### Step 7: ExportReport.tsx ✅
+- [x] Keep only PDF and Document (DOCX) options
+- [x] Removed JSON and Markdown export buttons
+
+### Step 8: Chat.tsx ✅
+- [x] Auto-fill email from localStorage (set during login)
+- [x] Add "Send to Email" button (SendHorizonal icon) after verdict is received
+- [x] Implemented `handleSendEmail` function that calls `/api/send-report-email`
+- [x] Show success/error toast after email send
+
+### Step 9: EmailSettings.tsx ✅
+- [x] Default SMTP email prefilled: prajeensenthilkumar.24@gmail.com
 

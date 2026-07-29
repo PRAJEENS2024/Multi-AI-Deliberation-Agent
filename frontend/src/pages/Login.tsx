@@ -10,6 +10,7 @@ export default function Login() {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -26,14 +27,33 @@ export default function Login() {
         const res = await axios.post(`${API_URL}/auth/login`, { username, password });
         if (res.data.success) {
           localStorage.setItem('auth_token', res.data.token);
+          let userEmail = res.data.email || '';
+          if (!userEmail) {
+            try {
+              const detail = JSON.parse(res.data.detail || '{}');
+              userEmail = detail.email || '';
+            } catch {}
+          }
+          if (userEmail) {
+            localStorage.setItem('user_email', userEmail);
+          }
+          localStorage.setItem('username', username);
           navigate('/chat');
         }
       } else {
-        const res = await axios.post(`${API_URL}/auth/signup`, { username, password });
+        // Signup with email
+        if (!email || !email.includes('@')) {
+          setError('Please enter a valid email address');
+          setIsLoading(false);
+          return;
+        }
+        const res = await axios.post(`${API_URL}/auth/signup`, { username, password, email });
         if (res.data.success) {
-          setSuccessMsg('Account created! You can now log in.');
-          setIsLoginMode(true);
-          setPassword(''); // Clear password for safety
+          localStorage.setItem('auth_token', res.data.token || `token-${username}`);
+          localStorage.setItem('user_email', email);
+          localStorage.setItem('username', username);
+          setSuccessMsg('Account created successfully! Redirecting...');
+          setTimeout(() => navigate('/chat'), 800);
         }
       }
     } catch (err: any) {
@@ -41,12 +61,14 @@ export default function Login() {
     } finally {
       setIsLoading(false);
     }
+
   };
 
   const toggleMode = () => {
     setIsLoginMode(!isLoginMode);
     setError('');
     setSuccessMsg('');
+    setEmail('');
   };
 
   return (
@@ -99,6 +121,21 @@ export default function Login() {
               />
             </div>
 
+            {/* Email field - only shown for signup */}
+            {!isLoginMode && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="e.g. prajeen114@gmail.com"
+                  className="w-full bg-dark-surface border border-dark-border outline-none rounded-xl p-4 text-white placeholder-gray-600 focus:border-brand-primary transition-colors"
+                />
+
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">Password</label>
               <input
@@ -125,7 +162,7 @@ export default function Login() {
 
             <button
               type="submit"
-              disabled={isLoading || !username || !password}
+              disabled={isLoading || !username || !password || (!isLoginMode && !email)}
               className="w-full mt-4 bg-brand-primary hover:bg-brand-primary/90 text-white font-medium p-4 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:hover:bg-brand-primary shadow-lg shadow-brand-glow cursor-pointer"
             >
               {isLoading ? <Loader2 size={20} className="animate-spin" /> : (

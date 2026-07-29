@@ -7,14 +7,16 @@ from app.models.schemas import (
     QueryRequest, QueryResponse, SessionState, Message,
     LoginRequest, SignupRequest, AuthResponse, SessionSummary,
     EmailSettingsRequest, ExportRequest, ExportResponse,
-    SaveEmailConfigRequest, EmailConfig, AgentMetrics,
+    SaveEmailConfigRequest, EmailConfig, AgentMetrics, SendReportRequest,
 )
 from app.services.state_manager import (
     create_session, get_session, update_session,
-    get_all_sessions, register_user, authenticate_user,
+    get_all_sessions, register_user, authenticate_user, get_user_email,
     get_email_config, save_email_config, get_agent_metrics,
 )
 from app.agents.agent_orchestrator import run_jury_workflow
+
+import base64
 
 router = APIRouter()
 
@@ -209,6 +211,44 @@ async def download_export(request: ExportRequest):
         )
 
 
+# ── Export Report as DOCX ─────────────────────────────────────────────────────
+@router.post("/export/download-docx")
+async def download_export_docx(request: ExportRequest):
+    """Download exported report as a DOCX file."""
+    state = get_session(request.session_id)
+    if not state:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if state.status != "Completed" or not state.verdict:
+        raise HTTPException(status_code=400, detail="Session is not completed yet.")
+
+    report_data = {}
+    if state.verdict.report:
+        r = state.verdict.report
+        report_data = {
+            "title":             r.title,
+            "executive_summary": r.executive_summary,
+            "key_findings":      r.key_findings,
+            "recommendations":   r.recommendations,
+            "sections":          [s.dict() for s in r.sections],
+        }
+
+    from app.agents.agent_email import build_docx_report
+    docx_bytes = build_docx_report(
+        prompt=state.prompt,
+        final_answer=state.verdict.final_answer,
+        report_data=report_data,
+        confidence_score=state.verdict.confidence_score,
+        debate_turns=[t.dict() for t in state.debate_turns],
+        consensus_claims=[c.dict() for c in state.verdict.consensus_claims],
+        disputed_claims=[d.dict() for d in state.verdict.disputed_claims],
+    )
+    return Response(
+        content=docx_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f"attachment; filename=ai_jury_report_{state.session_id[:8]}.docx"}
+    )
+
+
 # ── Timeline Data ─────────────────────────────────────────────────────────────
 @router.get("/session/{session_id}/timeline")
 async def get_confidence_timeline(session_id: str):
@@ -221,10 +261,10 @@ async def get_confidence_timeline(session_id: str):
 
 # ── Send Report on Demand ─────────────────────────────────────────────────────
 @router.post("/send-report")
-async def send_report(request: EmailSettingsRequest, background_tasks: BackgroundTasks):
+async def send_report(request: EmailSettingsRequest):
     """
     Trigger PDF generation and email dispatch for a completed session.
-    Can be called after the workflow completes if the user provides their email.
+    Awaits composition and returns explicit status/error to the client.
     """
     state = get_session(request.session_id)
     if not state:
@@ -245,25 +285,78 @@ async def send_report(request: EmailSettingsRequest, background_tasks: Backgroun
             "sections":          [s.dict() for s in r.sections],
         }
 
-    async def _dispatch():
-        success, msg = await compose_and_send_email(
-            recipient_email  = request.email,
-            prompt           = state.prompt,
-            final_answer     = state.verdict.final_answer,
-            report_data      = report_data,
-            confidence_score = state.verdict.confidence_score,
-            debate_turns     = [t.dict() for t in state.debate_turns],
-            consensus_claims = [c.dict() for c in state.verdict.consensus_claims],
-            disputed_claims  = [d.dict() for d in state.verdict.disputed_claims],
-        )
-        s = get_session(request.session_id)
-        if s and s.verdict and s.verdict.report:
-            s.verdict.report.email_sent      = success
-            s.verdict.report.email_recipient = request.email
-            update_session(request.session_id, s)
+    success, msg = await compose_and_send_email(
+        recipient_email  = request.email,
+        prompt           = state.prompt,
+        final_answer     = state.verdict.final_answer,
+        report_data      = report_data,
+        confidence_score = state.verdict.confidence_score,
+        debate_turns     = [t.dict() for t in state.debate_turns],
+        consensus_claims = [c.dict() for c in state.verdict.consensus_claims],
+        disputed_claims  = [d.dict() for d in state.verdict.disputed_claims],
+    )
 
-    background_tasks.add_task(_dispatch)
-    return {"status": "dispatching", "message": f"PDF report is being generated and sent to {request.email}"}
+    if state.verdict.report:
+        state.verdict.report.email_sent      = success
+        state.verdict.report.email_recipient = request.email
+        update_session(request.session_id, state)
+
+    if not success:
+        raise HTTPException(status_code=400, detail=msg)
+
+    return {"status": "sent", "message": f"PDF report successfully sent to {request.email}"}
+
+
+# ── Send Report to Registered Email ───────────────────────────────────────────
+@router.post("/send-report-email")
+async def send_report_to_email(request: SendReportRequest):
+    """
+    Send the PDF report to the user's registered email address.
+    """
+    state = get_session(request.session_id)
+    if not state:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if state.status != "Completed" or not state.verdict:
+        raise HTTPException(status_code=400, detail="Session is not completed yet.")
+
+    recipient_email = state.user_email
+    if not recipient_email:
+        raise HTTPException(status_code=400, detail="No email address found for this session.")
+
+    from app.agents.agent_email import compose_and_send_email
+
+    report_data = {}
+    if state.verdict.report:
+        r = state.verdict.report
+        report_data = {
+            "title":             r.title,
+            "executive_summary": r.executive_summary,
+            "key_findings":      r.key_findings,
+            "recommendations":   r.recommendations,
+            "sections":          [s.dict() for s in r.sections],
+        }
+
+    success, msg = await compose_and_send_email(
+        recipient_email  = recipient_email,
+        prompt           = state.prompt,
+        final_answer     = state.verdict.final_answer,
+        report_data      = report_data,
+        confidence_score = state.verdict.confidence_score,
+        debate_turns     = [t.dict() for t in state.debate_turns],
+        consensus_claims = [c.dict() for c in state.verdict.consensus_claims],
+        disputed_claims  = [d.dict() for d in state.verdict.disputed_claims],
+    )
+
+    if state.verdict.report:
+        state.verdict.report.email_sent      = success
+        state.verdict.report.email_recipient = recipient_email
+        update_session(request.session_id, state)
+
+    if not success:
+        raise HTTPException(status_code=400, detail=msg)
+
+    return {"status": "sent", "message": f"PDF report successfully sent to {recipient_email}"}
+
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -271,7 +364,9 @@ async def send_report(request: EmailSettingsRequest, background_tasks: Backgroun
 async def signup(request: SignupRequest):
     if not request.username.strip() or not request.password.strip():
         raise HTTPException(status_code=400, detail="Username and password are required")
-    success, msg = register_user(request.username, request.password)
+    if not request.email or "@" not in request.email:
+        raise HTTPException(status_code=400, detail="A valid email address is required")
+    success, msg = register_user(request.username, request.password, request.email)
     if success:
         return AuthResponse(success=True, detail=msg, token=f"token-{request.username}")
     raise HTTPException(status_code=400, detail=msg)
@@ -280,8 +375,15 @@ async def signup(request: SignupRequest):
 @router.post("/auth/login", response_model=AuthResponse)
 async def login(request: LoginRequest):
     if authenticate_user(request.username, request.password):
-        return AuthResponse(success=True, token=f"token-{request.username}")
+        user_email = get_user_email(request.username) or ""
+        return AuthResponse(
+            success=True,
+            token=f"token-{request.username}",
+            detail=json.dumps({"email": user_email}),
+            email=user_email
+        )
     raise HTTPException(status_code=401, detail="Invalid username or password")
+
 
 
 # ── Email Configuration ───────────────────────────────────────────────────────

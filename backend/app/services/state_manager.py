@@ -13,7 +13,7 @@ USERS_FILE = os.path.join(DATA_DIR, "users.json")
 EMAIL_CONFIG_FILE = os.path.join(DATA_DIR, "email_config.json")
 
 sessions: Dict[str, SessionState] = {}
-users: Dict[str, str] = {} # username -> password
+users: Dict[str, dict] = {}  # username -> {"password": str, "email": str}
 email_config: Optional[EmailConfig] = None
 
 def _load_data_from_disk():
@@ -21,7 +21,14 @@ def _load_data_from_disk():
     if os.path.exists(USERS_FILE):
         try:
             with open(USERS_FILE, "r", encoding="utf-8") as f:
-                users = json.load(f)
+                raw_users = json.load(f)
+            # Backward compatibility: convert old string-only entries to dict format
+            users = {}
+            for uname, val in raw_users.items():
+                if isinstance(val, str):
+                    users[uname] = {"password": val, "email": ""}
+                else:
+                    users[uname] = val
         except Exception as e:
             print(f"Error loading users.json: {e}")
             
@@ -63,15 +70,26 @@ def _save_email_config():
 # Load initial data on server start
 _load_data_from_disk()
 
-def register_user(username: str, password: str) -> Tuple[bool, str]:
+def register_user(username: str, password: str, email: str = "") -> Tuple[bool, str]:
     if username in users:
         return False, "Username already exists"
-    users[username] = password
+    users[username] = {"password": password, "email": email}
     _save_data_to_disk()
     return True, "User registered successfully"
 
 def authenticate_user(username: str, password: str) -> bool:
-    return users.get(username) == password
+    user = users.get(username)
+    if isinstance(user, dict):
+        return user.get("password") == password
+    # Backward compatibility: old format was just a password string
+    return user == password if isinstance(user, str) else False
+
+def get_user_email(username: str) -> Optional[str]:
+    """Get the registered email for a username."""
+    user = users.get(username)
+    if isinstance(user, dict):
+        return user.get("email")
+    return None
 
 def create_session(prompt: str, user_email: str = None, send_email: bool = False) -> str:
     session_id = str(uuid.uuid4())

@@ -1,1 +1,30 @@
-{}
+{
+  "testuser_new": {
+    "password": "password123",
+    "email": "testuser_new@example.com"
+  },
+  "testuser_jetski": {
+    "password": "testpassword123",
+    "email": "testuser_jetski@example.com"
+  },
+  "prajeen": {
+    "password": "123456",
+    "email": "prajeensenthilkumar.24@gmail.com"
+  },
+  "bala": {
+    "password": "123456",
+    "email": "prajeensenthilkumar.24@gmail.com"
+  },
+  "abhi": {
+    "password": "123456",
+    "email": "prajeensenthilkumar.24@gmail.com"
+  },
+  "agentx": {
+    "password": "123456",
+    "email": "abhinavkumaran2006@gmail.com"
+  },
+  "balasri": {
+    "password": "123456",
+    "email": "balasrisabhari.b2024ece@sece.ac.in"
+  }
+}

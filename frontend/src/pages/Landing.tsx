@@ -4,11 +4,39 @@ import { ShieldCheck, BrainCircuit, MessageSquareText, Sparkles, Mail, Download,
 
 export default function Landing() {
   const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem('auth_token');
+
+  const handleStart = () => {
+    if (isLoggedIn) {
+      navigate('/chat');
+    } else {
+      navigate('/login');
+    }
+  };
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto relative">
+      {/* Top Navbar */}
+      <div className="w-full flex items-center justify-end p-4 md:px-8 border-b border-dark-border/40">
+        {isLoggedIn ? (
+          <button
+            onClick={() => navigate('/chat')}
+            className="px-4 py-2 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl font-medium text-sm transition-all cursor-pointer shadow-md"
+          >
+            Go to Chat →
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate('/login')}
+            className="px-4 py-2 bg-dark-surface hover:bg-dark-surface-hover border border-dark-border text-white rounded-xl font-medium text-sm transition-all cursor-pointer"
+          >
+            Sign In / Register
+          </button>
+        )}
+      </div>
+
       {/* Hero Section */}
-      <div className="flex flex-col items-center justify-center min-h-[85vh] text-center space-y-8 px-4 py-16">
+      <div className="flex flex-col items-center justify-center min-h-[80vh] text-center space-y-8 px-4 py-12">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -31,13 +59,14 @@ export default function Landing() {
           
           <div className="flex items-center justify-center gap-4 pt-4">
             <button 
-              onClick={() => navigate('/chat')}
+              onClick={handleStart}
               className="px-8 py-4 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl font-semibold text-lg transition-all shadow-lg shadow-brand-primary/25 hover:shadow-brand-primary/40 hover:-translate-y-1 cursor-pointer"
             >
-              Try AI Jury Free
+              {isLoggedIn ? 'Go to Chat Dashboard' : 'Sign In to Try AI Jury'}
             </button>
           </div>
         </motion.div>
+
 
         {/* Feature Cards */}
         <motion.div 

@@ -1,6 +1,6 @@
- import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Loader2, AlertTriangle, User, Bot, ChevronDown, ChevronUp, ArrowLeft, BarChart3, GitBranch, Mail, XCircle, CheckCircle, X } from 'lucide-react';
+import { Send, Loader2, AlertTriangle, User, Bot, ChevronDown, ChevronUp, ArrowLeft, BarChart3, GitBranch, Mail, XCircle, CheckCircle, X, SendHorizonal } from 'lucide-react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
@@ -41,10 +41,11 @@ export default function Chat() {
   const [expandedVerdict, setExpandedVerdict] = useState<number | null>(null);
   const [showFlow, setShowFlow] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
+  const [userEmail, setUserEmail] = useState(localStorage.getItem('user_email') || 'prajeen114@gmail.com');
   const [showEmailInput, setShowEmailInput] = useState(false);
   const [pendingMessages, setPendingMessages] = useState<{ role: string; content: string }[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +57,17 @@ export default function Chat() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // Auto-fill email from localStorage (set during login)
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('user_email');
+    if (savedEmail) {
+      setUserEmail(savedEmail);
+    } else {
+      setUserEmail('prajeen114@gmail.com');
+    }
+  }, []);
+
 
   useEffect(() => {
     if (routeSessionId && routeSessionId !== sessionId) {
@@ -73,6 +85,28 @@ export default function Chat() {
   useEffect(() => {
     scrollToBottom();
   }, [sessionState, pendingMessages]);
+
+  const handleSendEmail = async () => {
+    if (!sessionId || !sessionState?.verdict) return;
+    if (!userEmail) {
+      setShowEmailInput(true);
+      showToast('Please enter your email address in the field above.', 'info');
+      return;
+    }
+    setSendingEmail(true);
+    try {
+      const res = await axios.post(`${API_URL}/send-report`, {
+        session_id: sessionId,
+        email: userEmail,
+      });
+      showToast(res.data.message || `PDF report is being generated and sent to ${userEmail}!`, 'success');
+    } catch (err: any) {
+      showToast(err.response?.data?.detail || 'Failed to send email report.', 'error');
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,14 +223,15 @@ export default function Chat() {
           {sessionState?.verdict && (
             <>
               <button
-                onClick={() => setShowEmailInput(!showEmailInput)}
+                onClick={handleSendEmail}
+                disabled={sendingEmail || !userEmail}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
-                  showEmailInput || userEmail ? 'bg-brand-accent/20 text-brand-accent border-brand-accent/30' : 'bg-dark-surface text-gray-400 border-dark-border hover:text-white'
+                  userEmail ? 'bg-brand-accent/20 text-brand-accent border-brand-accent/30 hover:bg-brand-accent/30' : 'bg-dark-surface text-gray-400 border-dark-border hover:text-white'
                 }`}
-                title="Email Report"
+                title={userEmail ? `Send PDF report to ${userEmail}` : 'No email configured'}
               >
-                <Mail size={14} />
-                <span className="hidden sm:inline">{userEmail ? 'Email Set' : 'Email'}</span>
+                {sendingEmail ? <Loader2 size={14} className="animate-spin" /> : <SendHorizonal size={14} />}
+                <span className="hidden sm:inline">{userEmail ? 'Send Email' : 'No Email'}</span>
               </button>
               <button
                 onClick={() => setShowFlow(!showFlow)}
@@ -305,13 +340,26 @@ export default function Chat() {
                       
                       {msg.verdict && (
                         <div className="mt-6 border-t border-dark-border pt-4">
-                          <button 
-                            onClick={() => toggleVerdict(idx)}
-                            className="flex items-center gap-2 text-sm text-brand-secondary hover:text-brand-primary transition-colors font-medium cursor-pointer"
-                          >
-                            {expandedVerdict === idx ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            {expandedVerdict === idx ? 'Hide Deliberation Details' : 'View Deliberation Details & Agent Debate'}
-                          </button>
+                          <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+                            <button 
+                              onClick={() => toggleVerdict(idx)}
+                              className="flex items-center gap-2 text-sm text-brand-secondary hover:text-brand-primary transition-colors font-medium cursor-pointer"
+                            >
+                              {expandedVerdict === idx ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                              {expandedVerdict === idx ? 'Hide Deliberation Details' : 'View Deliberation Details & Agent Debate'}
+                            </button>
+
+                            <button
+                              onClick={handleSendEmail}
+                              disabled={sendingEmail}
+                              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 text-white rounded-xl text-xs font-semibold shadow-lg shadow-brand-glow transition-all cursor-pointer disabled:opacity-50"
+                              title={userEmail ? `Send PDF report to ${userEmail}` : 'Send PDF report to email'}
+                            >
+                              {sendingEmail ? <Loader2 size={14} className="animate-spin" /> : <SendHorizonal size={14} />}
+                              <span>{userEmail ? `Send PDF to ${userEmail}` : 'Send PDF Report to Email'}</span>
+                            </button>
+                          </div>
+
                           
                           <AnimatePresence>
                             {expandedVerdict === idx && (

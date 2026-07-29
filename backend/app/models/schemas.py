@@ -10,12 +10,13 @@ class LoginRequest(BaseModel):
 class SignupRequest(BaseModel):
     username: str
     password: str
-    email: Optional[str] = None
+    email: str  # Required email for account creation and report delivery
 
 class AuthResponse(BaseModel):
     success: bool
     token: Optional[str] = None
     detail: Optional[str] = None
+    email: Optional[str] = None
 
 # ── Query ─────────────────────────────────────────────────────────────────────
 class QueryRequest(BaseModel):
@@ -146,6 +147,9 @@ class SessionSummary(BaseModel):
     created_at: Optional[str] = None
 
 # ── Email Settings ────────────────────────────────────────────────────────────
+class SendReportRequest(BaseModel):
+    session_id: str
+
 class EmailSettingsRequest(BaseModel):
     session_id: str
     email: str
@@ -153,18 +157,19 @@ class EmailSettingsRequest(BaseModel):
 class EmailConfig(BaseModel):
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587
-    smtp_user: str = ""
-    smtp_pass: str = ""
+    smtp_user: str = "b.balasrisabhari@gmail.com"
+    smtp_pass: str = "kwmr gglp pguj jnlz"
     sender_name: str = "AI Jury"
     use_tls: bool = True
 
 class SaveEmailConfigRequest(BaseModel):
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587
-    smtp_user: str = ""
-    smtp_pass: str = ""
+    smtp_user: str = "b.balasrisabhari@gmail.com"
+    smtp_pass: str = "kwmr gglp pguj jnlz"
     sender_name: str = "AI Jury"
     use_tls: bool = True
+
 
 # ── Export ────────────────────────────────────────────────────────────────────
 class ExportRequest(BaseModel):

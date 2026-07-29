@@ -138,8 +138,176 @@ def build_markdown_report(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# DOCX Generation
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def build_docx_report(
+    prompt: str,
+    final_answer: str,
+    report_data: dict,
+    confidence_score: int,
+    debate_turns: list = None,
+    consensus_claims: list = None,
+    disputed_claims: list = None,
+) -> bytes:
+    """Build a DOCX report and return it as bytes."""
+    from docx import Document
+    from docx.shared import Pt, Inches, RGBColor
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from datetime import datetime
+
+    doc = Document()
+
+    # Cover / Title
+    p_title = doc.add_paragraph()
+    p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p_title.add_run("AI JURY")
+    run.bold = True
+    run.font.size = Pt(28)
+    run.font.color.rgb = RGBColor(124, 58, 237)
+
+    p_sub = doc.add_paragraph()
+    p_sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p_sub.add_run("Multi-Agent Deliberation Report")
+    run.font.size = Pt(14)
+    run.font.color.rgb = RGBColor(100, 116, 139)
+
+    doc.add_paragraph()
+
+    # Query
+    p_q = doc.add_paragraph()
+    run = p_q.add_run("Query")
+    run.bold = True
+    run.font.size = Pt(11)
+    run.font.color.rgb = RGBColor(124, 58, 237)
+    p_qc = doc.add_paragraph(prompt)
+    p_qc.paragraph_format.space_after = Pt(12)
+
+    # Confidence Score
+    p_conf = doc.add_paragraph()
+    run = p_conf.add_run("Confidence Score: ")
+    run.bold = True
+    run.font.size = Pt(12)
+    run = p_conf.add_run(f"{confidence_score}%")
+    run.bold = True
+    run.font.size = Pt(16)
+    if confidence_score >= 75:
+        score_color = RGBColor(5, 150, 105)
+    elif confidence_score >= 50:
+        score_color = RGBColor(217, 119, 6)
+    else:
+        score_color = RGBColor(220, 38, 38)
+    run.font.color.rgb = score_color
+
+    doc.add_paragraph().add_run("\u2500" * 60)
+
+    # Executive Summary
+    exec_summary = report_data.get("executive_summary", "")
+    if exec_summary:
+        doc.add_heading("Executive Summary", level=1)
+        doc.add_paragraph(exec_summary)
+
+    # Key Findings
+    findings = report_data.get("key_findings", [])
+    if findings:
+        doc.add_heading("Key Findings", level=1)
+        for f in findings:
+            doc.add_paragraph(f, style="List Bullet")
+
+    # Recommendations
+    recs = report_data.get("recommendations", [])
+    if recs:
+        doc.add_heading("Recommendations", level=1)
+        for r in recs:
+            doc.add_paragraph(r, style="List Bullet")
+
+    # Final Answer
+    doc.add_heading("Final Answer", level=1)
+    for line in final_answer.split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith("### "):
+            doc.add_heading(line[4:], level=3)
+        elif line.startswith("## "):
+            doc.add_heading(line[3:], level=2)
+        elif line.startswith("# "):
+            doc.add_heading(line[2:], level=2)
+        elif line.startswith("- ") or line.startswith("* "):
+            doc.add_paragraph(line[2:], style="List Bullet")
+        elif line.startswith("```"):
+            continue
+        else:
+            doc.add_paragraph(line)
+
+    # Claim Analysis
+    consensus_claims = consensus_claims or []
+    disputed_claims = disputed_claims or []
+
+    if consensus_claims or disputed_claims:
+        doc.add_heading("Claim Analysis", level=1)
+        if consensus_claims:
+            doc.add_heading("Consensus Claims", level=2)
+            for c in consensus_claims[:8]:
+                claim_text = c.get("claim", "") if isinstance(c, dict) else str(c)
+                doc.add_paragraph(claim_text, style="List Bullet")
+        if disputed_claims:
+            doc.add_heading("Disputed Claims", level=2)
+            for d in disputed_claims[:5]:
+                claim_text = d.get("claim", "") if isinstance(d, dict) else str(d)
+                doc.add_paragraph(claim_text, style="List Bullet")
+
+    # Agent Deliberation Transcript
+    debate_turns = debate_turns or []
+    if debate_turns:
+        doc.add_heading("Agent Deliberation Transcript", level=1)
+        for turn in debate_turns:
+            t = turn if isinstance(turn, dict) else turn.dict() if hasattr(turn, 'dict') else str(turn)
+            speaker = t.get("speaker_persona", "Agent")
+            target = t.get("target_persona", "")
+            arg = t.get("argument", "")
+            header = f"Turn {t.get('turn_number', '')}: {speaker}"
+            if target:
+                header += f" \u2192 {target}"
+            doc.add_heading(header, level=2)
+            doc.add_paragraph(arg)
+
+    # Footer
+    doc.add_paragraph().add_run("\u2500" * 60)
+    p_footer = doc.add_paragraph()
+    p_footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p_footer.add_run(f"Generated by AI Jury 7-Agent LangGraph Pipeline | {datetime.now().strftime('%Y')}")
+    run.font.size = Pt(9)
+    run.font.color.rgb = RGBColor(148, 163, 184)
+
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # PDF Generation
 # ═══════════════════════════════════════════════════════════════════════════════
+
+def _clean_pdf_text(text: str) -> str:
+    """Safely escapes XML characters and converts Markdown formatting for ReportLab Paragraphs."""
+    if not text:
+        return ""
+    # Escape basic XML
+    cleaned = (
+        text.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+    )
+    # Convert markdown bold and italic
+    import re
+    cleaned = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', cleaned)
+    cleaned = re.sub(r'\*(.*?)\*', r'<i>\1</i>', cleaned)
+    cleaned = re.sub(r'`(.*?)`', r'<font face="Courier">\1</font>', cleaned)
+    return cleaned
+
 
 def _build_pdf(
     prompt: str,
@@ -150,7 +318,7 @@ def _build_pdf(
     consensus_claims: list = None,
     disputed_claims: list = None,
 ) -> bytes:
-    """Builds a professional multi-page PDF report and returns it as bytes."""
+    """Builds a professional high-contrast multi-page PDF report and returns it as bytes."""
 
     buffer = io.BytesIO()
     debate_turns = debate_turns or []
@@ -160,87 +328,91 @@ def _build_pdf(
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
-        leftMargin=20 * mm,
-        rightMargin=20 * mm,
-        topMargin=20 * mm,
-        bottomMargin=20 * mm,
+        leftMargin=15 * mm,
+        rightMargin=15 * mm,
+        topMargin=15 * mm,
+        bottomMargin=15 * mm,
     )
 
-    # Colour palette
-    PURPLE   = colors.HexColor("#8b5cf6")
-    BLUE     = colors.HexColor("#3b82f6")
-    GREEN    = colors.HexColor("#10b981")
-    AMBER    = colors.HexColor("#f59e0b")
-    RED      = colors.HexColor("#ef4444")
-    SURFACE  = colors.HexColor("#18181b")
-    BORDER   = colors.HexColor("#27272a")
-    LIGHT    = colors.HexColor("#f4f4f5")
-    MUTED    = colors.HexColor("#a1a1aa")
+    # High-contrast color palette for printing and viewing on light background
+    PURPLE   = colors.HexColor("#6d28d9")
+    BLUE     = colors.HexColor("#1d4ed8")
+    GREEN    = colors.HexColor("#047857")
+    AMBER    = colors.HexColor("#b45309")
+    RED      = colors.HexColor("#b91c1c")
+    SURFACE  = colors.HexColor("#f1f5f9")
+    BORDER   = colors.HexColor("#cbd5e1")
+    TEXT_DARK= colors.HexColor("#0f172a")  # Slate 900 for ultra-sharp legibility
+    MUTED    = colors.HexColor("#475569")
 
     base = getSampleStyleSheet()
 
     def _style(name, parent="Normal", **kw):
         return ParagraphStyle(name, parent=base[parent], **kw)
 
-    h1_style     = _style("H1",       fontSize=16, textColor=PURPLE,  spaceBefore=14, spaceAfter=6, fontName="Helvetica-Bold")
-    h2_style     = _style("H2",       fontSize=12, textColor=BLUE,    spaceBefore=10, spaceAfter=4, fontName="Helvetica-Bold")
-    h3_style     = _style("H3",       fontSize=10, textColor=PURPLE,  spaceBefore=8,  spaceAfter=3, fontName="Helvetica-Bold")
-    body_style   = _style("Body",     fontSize=9,  textColor=LIGHT,   spaceAfter=4,  fontName="Helvetica", leading=14, alignment=TA_JUSTIFY)
-    muted_style  = _style("Muted",    fontSize=8,  textColor=MUTED,   spaceAfter=2,  fontName="Helvetica")
-    bullet_style = _style("Bullet",   fontSize=9,  textColor=LIGHT,   spaceAfter=2,  fontName="Helvetica", leftIndent=14)
-    label_style  = _style("Label",    fontSize=7,  textColor=PURPLE,  spaceAfter=1,  fontName="Helvetica-Bold")
-    footer_style = _style("Footer",   fontSize=7,  textColor=MUTED,   alignment=TA_CENTER)
+    h1_style     = _style("H1",       fontSize=15, textColor=PURPLE,    spaceBefore=14, spaceAfter=6, fontName="Helvetica-Bold")
+    h2_style     = _style("H2",       fontSize=12, textColor=BLUE,      spaceBefore=10, spaceAfter=4, fontName="Helvetica-Bold")
+    h3_style     = _style("H3",       fontSize=10, textColor=PURPLE,    spaceBefore=8,  spaceAfter=3, fontName="Helvetica-Bold")
+    body_style   = _style("Body",     fontSize=10, textColor=TEXT_DARK, spaceAfter=5,  fontName="Helvetica", leading=15, alignment=TA_LEFT)
+    muted_style  = _style("Muted",    fontSize=8.5,textColor=MUTED,     spaceAfter=3,  fontName="Helvetica", leading=12)
+    bullet_style = _style("Bullet",   fontSize=10, textColor=TEXT_DARK, spaceAfter=3,  fontName="Helvetica", leading=14, leftIndent=12)
+    footer_style = _style("Footer",   fontSize=8,  textColor=MUTED,     alignment=TA_CENTER)
 
     story = []
 
-    # Cover page
-    story.append(Spacer(1, 30 * mm))
-    story.append(HRFlowable(width="60%", thickness=2, color=PURPLE, spaceAfter=8 * mm))
-    story.append(Paragraph("AI JURY", _style("CoverTitle", fontSize=36, textColor=PURPLE, fontName="Helvetica-Bold", alignment=TA_CENTER)))
-    story.append(Paragraph("Multi-Agent Deliberation Report", _style("CoverSub", fontSize=14, textColor=MUTED, alignment=TA_CENTER)))
-    story.append(HRFlowable(width="60%", thickness=2, color=PURPLE, spaceAfter=8 * mm))
+    # Cover Header
     story.append(Spacer(1, 10 * mm))
+    story.append(HRFlowable(width="100%", thickness=2, color=PURPLE, spaceAfter=6 * mm))
+    story.append(Paragraph("AI JURY", _style("CoverTitle", fontSize=32, textColor=PURPLE, fontName="Helvetica-Bold", alignment=TA_CENTER)))
+    story.append(Paragraph("Multi-Agent Deliberation Report", _style("CoverSub", fontSize=13, textColor=MUTED, alignment=TA_CENTER, spaceBefore=4)))
+    story.append(HRFlowable(width="100%", thickness=2, color=PURPLE, spaceBefore=6 * mm, spaceAfter=6 * mm))
+    story.append(Spacer(1, 4 * mm))
 
-    # Query on cover
+    # Query Section
+    story.append(Paragraph("USER QUERY", _style("QL", fontSize=9, textColor=PURPLE, fontName="Helvetica-Bold", spaceAfter=2)))
     query_table = Table(
-        [[Paragraph(prompt, body_style)]],
-        colWidths=["100%"],
+        [[Paragraph(_clean_pdf_text(prompt), body_style)]],
+        colWidths=[180 * mm],
     )
     query_table.setStyle(TableStyle([
-        ("BACKGROUND",   (0, 0), (-1, -1), colors.HexColor("#8b5cf610")),
-        ("BOX",          (0, 0), (-1, -1), 0.5, PURPLE),
+        ("BACKGROUND",   (0, 0), (-1, -1), colors.HexColor("#f5f3ff")),
+        ("BOX",          (0, 0), (-1, -1), 1, PURPLE),
         ("LEFTPADDING",  (0, 0), (-1, -1), 10),
         ("RIGHTPADDING", (0, 0), (-1, -1), 10),
         ("TOPPADDING",   (0, 0), (-1, -1), 8),
         ("BOTTOMPADDING",(0, 0), (-1, -1), 8),
     ]))
     story.append(query_table)
-    story.append(Spacer(1, 8 * mm))
+    story.append(Spacer(1, 6 * mm))
 
-    # Confidence Score
+    # Confidence Score Badge
     conf_color = GREEN if confidence_score >= 75 else (AMBER if confidence_score >= 50 else RED)
     conf_table = Table(
         [[
-            Paragraph("CONFIDENCE SCORE", _style("CL", fontSize=8, textColor=MUTED, fontName="Helvetica-Bold")),
-            Paragraph(f"{confidence_score}%", _style("CV", fontSize=20, textColor=conf_color, fontName="Helvetica-Bold", alignment=TA_CENTER)),
+            Paragraph("DELIBERATION CONFIDENCE SCORE", _style("CL", fontSize=9, textColor=MUTED, fontName="Helvetica-Bold")),
+            Paragraph(f"{confidence_score}%", _style("CV", fontSize=18, textColor=conf_color, fontName="Helvetica-Bold", alignment=TA_CENTER)),
         ]],
-        colWidths=["80%", "20%"],
+        colWidths=[140 * mm, 40 * mm],
     )
     conf_table.setStyle(TableStyle([
         ("BACKGROUND",  (0, 0), (-1, -1), SURFACE),
-        ("BOX",         (0, 0), (-1, -1), 0.5, BORDER),
+        ("BOX",         (0, 0), (-1, -1), 1, BORDER),
         ("VALIGN",      (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("RIGHTPADDING",(0, 0), (-1, -1), 10),
+        ("TOPPADDING",  (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING",(0, 0), (-1, -1), 6),
     ]))
     story.append(conf_table)
 
-    story.append(Spacer(1, 10 * mm))
+    story.append(Spacer(1, 6 * mm))
     story.append(HRFlowable(width="100%", thickness=0.5, color=BORDER, spaceAfter=6 * mm))
 
     # Executive Summary
     exec_summary = report_data.get("executive_summary", "")
     if exec_summary:
         story.append(Paragraph("Executive Summary", h1_style))
-        story.append(Paragraph(exec_summary, body_style))
+        story.append(Paragraph(_clean_pdf_text(exec_summary), body_style))
         story.append(Spacer(1, 4 * mm))
 
     # Key Findings
@@ -248,7 +420,7 @@ def _build_pdf(
     if findings:
         story.append(Paragraph("Key Findings", h1_style))
         for f in findings:
-            story.append(Paragraph(f"  {f}", bullet_style))
+            story.append(Paragraph(f"• {_clean_pdf_text(f)}", bullet_style))
         story.append(Spacer(1, 4 * mm))
 
     # Recommendations
@@ -256,71 +428,75 @@ def _build_pdf(
     if recs:
         story.append(Paragraph("Recommendations", h1_style))
         for r in recs:
-            story.append(Paragraph(f"  {r}", bullet_style))
+            story.append(Paragraph(f"• {_clean_pdf_text(r)}", bullet_style))
         story.append(Spacer(1, 4 * mm))
 
     # Final Answer
-    story.append(Paragraph("Final Answer", h1_style))
+    story.append(Paragraph("Synthesized Verdict & Final Answer", h1_style))
     for line in final_answer.split("\n"):
         line = line.strip()
         if not line:
             story.append(Spacer(1, 2 * mm))
         elif line.startswith("### "):
-            story.append(Paragraph(line[4:], h3_style))
+            story.append(Paragraph(_clean_pdf_text(line[4:]), h3_style))
         elif line.startswith("## "):
-            story.append(Paragraph(line[3:], h2_style))
+            story.append(Paragraph(_clean_pdf_text(line[3:]), h2_style))
         elif line.startswith("# "):
-            story.append(Paragraph(line[2:], h2_style))
+            story.append(Paragraph(_clean_pdf_text(line[2:]), h2_style))
         elif line.startswith("- ") or line.startswith("* "):
-            story.append(Paragraph(f"  {line[2:]}", bullet_style))
+            story.append(Paragraph(f"• {_clean_pdf_text(line[2:])}", bullet_style))
         elif line.startswith("```"):
             pass
         else:
-            story.append(Paragraph(line, body_style))
+            story.append(Paragraph(_clean_pdf_text(line), body_style))
     story.append(Spacer(1, 4 * mm))
 
     # Claim Analysis
     if consensus_claims or disputed_claims:
-        story.append(Paragraph("Claim Analysis", h1_style))
+        story.append(Paragraph("Claim Analysis & Fact-Check", h1_style))
         if consensus_claims:
             story.append(Paragraph("Consensus Claims", h2_style))
             for c in consensus_claims[:8]:
                 claim_text = c.get("claim", "") if isinstance(c, dict) else str(c)
-                story.append(Paragraph(f"  {claim_text}", bullet_style))
+                story.append(Paragraph(f"✓ {_clean_pdf_text(claim_text)}", bullet_style))
             story.append(Spacer(1, 3 * mm))
         if disputed_claims:
             story.append(Paragraph("Disputed Claims", h2_style))
             for d in disputed_claims[:5]:
                 claim_text = d.get("claim", "") if isinstance(d, dict) else str(d)
-                story.append(Paragraph(f"  {claim_text}", bullet_style))
+                ev = d.get("evidence", "") if isinstance(d, dict) else ""
+                story.append(Paragraph(f"⚠ {_clean_pdf_text(claim_text)}", bullet_style))
+                if ev:
+                    story.append(Paragraph(f"<i>Evidence: {_clean_pdf_text(ev[:200])}</i>", muted_style))
             story.append(Spacer(1, 4 * mm))
 
     # Agent Deliberation Transcript
     if debate_turns:
         story.append(Paragraph("Agent Deliberation Transcript", h1_style))
         for turn in debate_turns:
-            t = turn if isinstance(turn, dict) else turn.dict()
+            t = turn if isinstance(turn, dict) else (turn.dict() if hasattr(turn, 'dict') else {})
             speaker = t.get("speaker_persona", "Agent")
             target  = t.get("target_persona", "")
             arg     = t.get("argument", "")
             ev      = t.get("evidence", "")
             header  = f"Turn {t.get('turn_number', '')}: {speaker}" + (f" -> {target}" if target else "")
-            story.append(Paragraph(header, h2_style))
-            story.append(Paragraph(arg, body_style))
+            story.append(Paragraph(_clean_pdf_text(header), h2_style))
+            story.append(Paragraph(_clean_pdf_text(arg), body_style))
             if ev:
-                story.append(Paragraph(f"Evidence: {ev[:200]}", muted_style))
-            story.append(Spacer(1, 2 * mm))
+                story.append(Paragraph(f"<b>Evidence:</b> {_clean_pdf_text(ev[:200])}", muted_style))
+            story.append(Spacer(1, 3 * mm))
 
     # Footer
     story.append(Spacer(1, 6 * mm))
     story.append(HRFlowable(width="100%", thickness=0.5, color=BORDER, spaceAfter=3 * mm))
     story.append(Paragraph(
-        f"Generated by AI Jury 7-Agent LangGraph Pipeline | {datetime.now().strftime('%Y')}",
+        f"Generated by AI Jury 7-Agent Deliberation Pipeline | {datetime.now().strftime('%B %d, %Y')}",
         footer_style
     ))
 
     doc.build(story)
     return buffer.getvalue()
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -417,25 +593,25 @@ async def compose_and_send_email(
   </div>
 </body></html>"""
 
-    # Step 4: Send via SMTP (use saved config if available, fall back to env vars)
+    # Step 4: Send via SMTP (use saved config if available, fall back to default)
     saved_config = get_email_config()
-    if saved_config and saved_config.smtp_user and saved_config.smtp_pass:
-        smtp_host = saved_config.smtp_host
-        smtp_port = saved_config.smtp_port
-        smtp_user = saved_config.smtp_user
-        smtp_pass = saved_config.smtp_pass
-        sender_name = saved_config.sender_name
-        use_tls = saved_config.use_tls
+    if saved_config and saved_config.smtp_pass:
+        smtp_host   = saved_config.smtp_host or "smtp.gmail.com"
+        smtp_port   = saved_config.smtp_port or 587
+        smtp_user   = saved_config.smtp_user or "b.balasrisabhari@gmail.com"
+        smtp_pass   = saved_config.smtp_pass.strip('"\' ')
+        sender_name = saved_config.sender_name or "AI Jury"
+        use_tls     = saved_config.use_tls
     else:
-        smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-        smtp_port = int(os.getenv("SMTP_PORT", "587"))
-        smtp_user = os.getenv("SMTP_USER", "")
-        smtp_pass = os.getenv("SMTP_PASS", "")
+        smtp_host   = os.getenv("SMTP_HOST", "smtp.gmail.com")
+        smtp_port   = int(os.getenv("SMTP_PORT", "587"))
+        smtp_user   = os.getenv("SMTP_USER", "b.balasrisabhari@gmail.com")
+        smtp_pass   = os.getenv("SMTP_PASS", "kwmrgglppgujjnlz").strip('"\' ')
         sender_name = "AI Jury"
-        use_tls = True
+        use_tls     = True
 
     if not smtp_user or not smtp_pass:
-        return False, "SMTP credentials not configured. Configure them via Email Settings in the sidebar or add SMTP_USER and SMTP_PASS to your .env file."
+        return False, "SMTP credentials not configured. Please enter your email and app password in Email Settings."
 
     try:
         msg = MIMEMultipart("mixed")
@@ -455,15 +631,35 @@ async def compose_and_send_email(
         pdf_part.add_header("Content-Disposition", "attachment", filename=f"AI_Jury_Report_{safe_name}.pdf")
         msg.attach(pdf_part)
 
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
-            server.ehlo()
-            if use_tls:
-                server.starttls()
-            server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_user, recipient_email, msg.as_string())
+        sent = False
+        last_err = ""
 
-        return True, f"PDF report successfully sent to {recipient_email}"
+        # Try primary TLS port (587)
+        try:
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=12) as server:
+                server.ehlo()
+                if use_tls:
+                    server.starttls()
+                server.login(smtp_user, smtp_pass)
+                server.sendmail(smtp_user, recipient_email, msg.as_string())
+                sent = True
+        except Exception as e1:
+            last_err = str(e1)
+            # Try secondary SSL port (465) if 587 timed out
+            try:
+                with smtplib.SMTP_SSL(smtp_host, 465, timeout=12) as server_ssl:
+                    server_ssl.login(smtp_user, smtp_pass)
+                    server_ssl.sendmail(smtp_user, recipient_email, msg.as_string())
+                    sent = True
+            except Exception as e2:
+                last_err = str(e2)
+
+        if sent:
+            return True, f"PDF report successfully sent to {recipient_email}"
+        else:
+            return False, f"SMTP connection failed ({last_err}). Please check network connectivity / firewall rules for port 587/465."
 
     except Exception as e:
         return False, f"Email send failed: {str(e)}"
+
 

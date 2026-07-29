@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, FileText, FileJson, FileDown, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Download, FileText, FileCode, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8000/api';
@@ -15,19 +15,20 @@ export default function ExportReport({ sessionId, disabled }: ExportReportProps)
   const [exporting, setExporting] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const handleExport = async (format: 'pdf' | 'json' | 'markdown') => {
+  const handleExport = async (format: 'pdf' | 'docx') => {
     setExporting(true);
     setStatus(null);
     try {
-      // Download via the download endpoint
-      const res = await axios.post(`${API_URL}/export/download`, {
+      const endpoint = format === 'docx' ? `${API_URL}/export/download-docx` : `${API_URL}/export/download`;
+
+      const res = await axios.post(endpoint, {
         session_id: sessionId,
         format: format,
       }, {
         responseType: 'blob',
       });
 
-      const ext = format === 'markdown' ? 'md' : format;
+      const ext = format === 'docx' ? 'docx' : 'pdf';
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -75,18 +76,11 @@ export default function ExportReport({ sessionId, disabled }: ExportReportProps)
                 <span>Export as PDF</span>
               </button>
               <button
-                onClick={() => handleExport('json')}
+                onClick={() => handleExport('docx')}
                 className="w-full flex items-center gap-2.5 p-2.5 rounded-lg hover:bg-dark-surface-hover text-xs text-gray-300 transition-colors cursor-pointer"
               >
-                <FileJson size={14} className="text-amber-400" />
-                <span>Export as JSON</span>
-              </button>
-              <button
-                onClick={() => handleExport('markdown')}
-                className="w-full flex items-center gap-2.5 p-2.5 rounded-lg hover:bg-dark-surface-hover text-xs text-gray-300 transition-colors cursor-pointer"
-              >
-                <FileDown size={14} className="text-blue-400" />
-                <span>Export as Markdown</span>
+                <FileCode size={14} className="text-blue-400" />
+                <span>Export as Document</span>
               </button>
             </div>
           </motion.div>

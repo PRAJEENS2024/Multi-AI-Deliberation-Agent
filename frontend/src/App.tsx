@@ -1,10 +1,18 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Chat from './pages/Chat';
 import Login from './pages/Login';
 import Dashboard from './components/Dashboard';
 import Sidebar from './components/Sidebar';
 import './index.css';
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = !!localStorage.getItem('auth_token');
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+}
 
 function App() {
   return (
@@ -18,9 +26,9 @@ function App() {
               <main className="flex-1 flex flex-col h-full relative">
                 <Routes>
                   <Route path="/" element={<Landing />} />
-                  <Route path="/chat" element={<Chat />} />
-                  <Route path="/chat/:sessionId" element={<Chat />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+                  <Route path="/chat/:sessionId" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+                  <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 </Routes>
               </main>
             </>
@@ -30,5 +38,6 @@ function App() {
     </Router>
   );
 }
+
 
 export default App;

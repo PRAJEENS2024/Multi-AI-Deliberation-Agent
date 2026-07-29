@@ -109,9 +109,38 @@ export default function Sidebar() {
         )}
       </div>
 
-      {/* Bottom: Email Settings */}
-      <div className="px-3 pb-3">
+      {/* Bottom: Email Settings & User Account */}
+      <div className="px-3 pb-3 space-y-2">
         <EmailSettings />
+
+        {/* User Auth Section */}
+        {localStorage.getItem('username') ? (
+          <div className="bg-dark-surface border border-dark-border rounded-xl p-2.5 flex items-center justify-between">
+            <div className="overflow-hidden pr-2">
+              <p className="text-xs font-semibold text-white truncate">{localStorage.getItem('username')}</p>
+              <p className="text-[10px] text-gray-500 truncate">{localStorage.getItem('user_email') || 'No email'}</p>
+            </div>
+            <button
+              onClick={() => {
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('user_email');
+                localStorage.removeItem('username');
+                navigate('/login');
+              }}
+              className="p-1.5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg transition-colors text-xs font-medium cursor-pointer shrink-0"
+              title="Sign Out"
+            >
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => navigate('/login')}
+            className="w-full py-2 px-3 bg-brand-primary/20 hover:bg-brand-primary/30 border border-brand-primary/40 text-brand-primary rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2"
+          >
+            Sign In / Register
+          </button>
+        )}
       </div>
 
       {/* Footer branding */}
@@ -121,3 +150,4 @@ export default function Sidebar() {
     </div>
   );
 }
+
