@@ -14,11 +14,10 @@ import {
   Sparkles,
 } from 'lucide-react';
 import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { PipelineGraph } from '../components/PipelineGraph';
 import { AgentExecutionPanel } from '../components/AgentExecutionPanel';
-
 
 const API_URL = 'http://localhost:8000/api';
 
@@ -59,6 +58,7 @@ function ToastNotification({
 export default function Chat() {
   const { sessionId: routeSessionId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [prompt, setPrompt] = useState('');
   const [sessionId, setSessionId] = useState<string | null>(routeSessionId || null);
@@ -66,7 +66,6 @@ export default function Chat() {
   const [isPolling, setIsPolling] = useState(false);
   const [userEmail, setUserEmail] = useState(localStorage.getItem('user_email') || 'abhinavkumaran2006@gmail.com');
   const [pendingMessages, setPendingMessages] = useState<{ role: string; content: string }[]>([]);
-
 
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null);
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -89,6 +88,16 @@ export default function Chat() {
       setUserEmail(savedEmail);
     }
   }, []);
+
+  // Handle initial prompt passed from Landing page
+  useEffect(() => {
+    const initialPrompt = location.state?.initialPrompt;
+    if (initialPrompt && !sessionId && !isPolling) {
+      setPrompt(initialPrompt);
+      // Automatically trigger query
+      sendQuery(initialPrompt);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     if (routeSessionId && routeSessionId !== sessionId) {
@@ -128,19 +137,17 @@ export default function Chat() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!prompt.trim() || isPolling) return;
+  const sendQuery = async (queryText: string) => {
+    if (!queryText.trim() || isPolling) return;
 
-    const currentPrompt = prompt;
     setPrompt('');
 
     if (!sessionState) {
-      setPendingMessages((prev) => [...prev, { role: 'user', content: currentPrompt }]);
+      setPendingMessages((prev) => [...prev, { role: 'user', content: queryText }]);
     } else {
       setSessionState((prev: any) => ({
         ...prev,
-        history: [...(prev.history || []), { role: 'user', content: currentPrompt }],
+        history: [...(prev.history || []), { role: 'user', content: queryText }],
         status: 'Initializing',
         verdict: null,
         agent_pipeline: [],
@@ -150,7 +157,7 @@ export default function Chat() {
 
     try {
       const res = await axios.post(`${API_URL}/query`, {
-        prompt: currentPrompt,
+        prompt: queryText,
         session_id: sessionId,
         user_id: userId || undefined,
         email: userEmail || undefined,
@@ -163,12 +170,17 @@ export default function Chat() {
       setIsPolling(true);
     } catch (err: any) {
       const errorMsg =
-        err.response?.data?.detail || err.message || 'Failed to connect to AI Jury backend. Make sure the server is running.';
+        err.response?.data?.detail || err.message || 'Failed to connect to Veritas AI backend. Make sure server is running.';
       showToast(errorMsg, 'error');
       if (!sessionId) {
         setPendingMessages([]);
       }
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendQuery(prompt);
   };
 
   useEffect(() => {
@@ -182,13 +194,13 @@ export default function Chat() {
           if (res.data.status === 'Completed' || res.data.status === 'Error') {
             setIsPolling(false);
             if (res.data.status === 'Error') {
-              showToast('An error occurred during processing. Please try again.', 'error');
+              showToast('An error occurred during deliberation. Please try again.', 'error');
             }
           }
         } catch (err) {
           console.error(err);
           setIsPolling(false);
-          showToast('Lost connection to the server. Please refresh.', 'error');
+          showToast('Lost connection to server. Please refresh.', 'error');
         }
       }, 1000) as unknown as number;
     }
@@ -196,7 +208,6 @@ export default function Chat() {
   }, [isPolling, sessionId, showToast]);
 
   const displayMessages = [];
-
   if (pendingMessages.length > 0 && !sessionState) {
     displayMessages.push(...pendingMessages);
   }
@@ -213,7 +224,7 @@ export default function Chat() {
   const isProcessing = isPolling && sessionState && sessionState.status !== 'Completed';
 
   return (
-    <div className="flex-1 flex flex-col bg-[#070A14] min-h-screen font-sans">
+    <div className="flex-1 flex flex-col bg-[#070A14] h-full font-sans overflow-hidden">
       <AnimatePresence>
         {toast && (
           <ToastNotification message={toast.message} type={toast.type} onClose={() => setToast(null)} />
@@ -221,20 +232,20 @@ export default function Chat() {
       </AnimatePresence>
 
       {/* Header Bar */}
-      <header className="h-16 border-b border-white/10 bg-[#0B1020]/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-30">
+      <header className="h-16 border-b border-white/10 bg-[#0B1020]/90 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-30 shrink-0">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/')}
             className="p-2 hover:bg-white/5 rounded-xl transition-colors text-gray-400 hover:text-white cursor-pointer"
-            title="Go Home"
+            title="Return to Landing Page (Home)"
           >
             <ArrowLeft size={18} />
           </button>
           <div>
             <h1 className="text-sm font-bold text-white flex items-center gap-2">
-              AI Jury Workspace
-              <span className="text-[10px] font-mono font-semibold bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30">
-                Live Deliberation
+              Veritas AI Workspace
+              <span className="text-[10px] font-mono font-bold byjus-badge-gold px-2 py-0.5 rounded-full">
+                7 Agents
               </span>
             </h1>
             {sessionId && (
@@ -264,51 +275,51 @@ export default function Chat() {
         </div>
       </header>
 
-      {/* Main Chat Container */}
+      {/* Scrollable Main Chat Area */}
       <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 max-w-6xl mx-auto w-full">
-        {/* Real-time LangGraph Pipeline Bar */}
+        {/* Real-time Pipeline Diagram */}
         <PipelineGraph
           pipeline={sessionState?.agent_pipeline}
           currentStatus={sessionState?.status}
         />
 
-        {/* Empty State when no session is loaded */}
+        {/* Empty State */}
         {!sessionState && pendingMessages.length === 0 && (
           <div className="py-12 px-6 text-center space-y-6">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-500 flex items-center justify-center text-3xl font-bold text-white mx-auto shadow-xl shadow-purple-900/30 border border-white/20">
-              ⚖️
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#8028A3] via-purple-600 to-[#00F5D4] flex items-center justify-center text-3xl font-bold text-white mx-auto shadow-xl shadow-purple-900/40 border border-white/20">
+              ✨
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Ask AI Jury Anything</h2>
+              <h2 className="text-2xl font-black text-white">Ask Veritas AI Anything</h2>
               <p className="text-xs text-gray-400 max-w-md mx-auto mt-1">
-                7 specialized autonomous agents will cross-examine web evidence, detect cognitive bias, and synthesize an authoritative verdict.
+                7 autonomous agents cross-examine evidence, audit bias, and deliver verified verdicts.
               </p>
             </div>
 
-            {/* Suggested Prompts Grid */}
+            {/* Prompt Suggestions */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto text-left">
               <button
-                onClick={() => setPrompt('What are the environmental and scientific impacts of acid rain?')}
-                className="p-3.5 rounded-xl bg-gray-900/60 hover:bg-white/5 border border-white/10 transition-all text-xs text-gray-300 hover:text-white cursor-pointer"
+                onClick={() => sendQuery('What are the environmental and scientific impacts of acid rain?')}
+                className="p-3.5 rounded-xl bg-gray-900/80 hover:bg-white/5 border border-white/10 transition-all text-xs text-gray-300 hover:text-white cursor-pointer"
               >
-                <div className="font-semibold text-purple-300 mb-1">🔬 Environmental Science</div>
-                Explain the cause and environmental impacts of acid rain.
+                <div className="font-bold text-purple-300 mb-1">🔬 Environmental Science</div>
+                Explain cause and environmental impacts of acid rain.
               </button>
 
               <button
-                onClick={() => setPrompt('What are the main advantages of solar power over fossil fuels?')}
-                className="p-3.5 rounded-xl bg-gray-900/60 hover:bg-white/5 border border-white/10 transition-all text-xs text-gray-300 hover:text-white cursor-pointer"
+                onClick={() => sendQuery('What are the main advantages of solar power over fossil fuels?')}
+                className="p-3.5 rounded-xl bg-gray-900/80 hover:bg-white/5 border border-white/10 transition-all text-xs text-gray-300 hover:text-white cursor-pointer"
               >
-                <div className="font-semibold text-cyan-300 mb-1">⚡ Renewable Energy</div>
-                What are the economic benefits of solar energy vs fossil fuels?
+                <div className="font-bold text-cyan-300 mb-1">⚡ Renewable Energy</div>
+                Economic & environmental benefits of solar energy.
               </button>
 
               <button
-                onClick={() => setPrompt('Compare quantum computing against classical RSA cryptography security.')}
-                className="p-3.5 rounded-xl bg-gray-900/60 hover:bg-white/5 border border-white/10 transition-all text-xs text-gray-300 hover:text-white cursor-pointer"
+                onClick={() => sendQuery('Compare quantum computing against classical RSA cryptography security.')}
+                className="p-3.5 rounded-xl bg-gray-900/80 hover:bg-white/5 border border-white/10 transition-all text-xs text-gray-300 hover:text-white cursor-pointer"
               >
-                <div className="font-semibold text-emerald-300 mb-1">🛡️ Cybersecurity</div>
-                How does quantum computing threaten classical RSA encryption?
+                <div className="font-bold text-emerald-300 mb-1">🛡️ Cybersecurity</div>
+                How quantum computing threatens RSA encryption.
               </button>
             </div>
           </div>
@@ -326,8 +337,7 @@ export default function Chat() {
           />
         )}
 
-
-        {/* Conversation Stream */}
+        {/* Conversation Message Stream */}
         {displayMessages.map((msg, idx) => (
           <motion.div
             key={idx}
@@ -336,25 +346,26 @@ export default function Chat() {
             className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {msg.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0 border border-white/20">
-                AJ
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#8028A3] to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0 border border-white/20">
+                ✨
               </div>
             )}
 
-            <div className={`max-w-3xl rounded-2xl p-5 border ${
-              msg.role === 'user'
-                ? 'bg-purple-950/40 border-purple-500/40 text-purple-100'
-                : 'glass-panel border-white/10 text-gray-200'
-            }`}>
+            <div
+              className={`max-w-3xl rounded-2xl p-5 border ${
+                msg.role === 'user'
+                  ? 'bg-purple-950/50 border-purple-500/40 text-purple-100'
+                  : 'glass-panel border-white/10 text-gray-200'
+              }`}
+            >
               <div className="prose prose-invert prose-xs leading-relaxed max-w-none">
                 <ReactMarkdown>{msg.content}</ReactMarkdown>
               </div>
 
-              {/* Verdict Final Summary & Action Card */}
               {msg.verdict && (
                 <div className="mt-6 pt-4 border-t border-white/10 space-y-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3 bg-gray-950/60 p-3.5 rounded-xl border border-white/10">
-                    <div className="flex items-center gap-2 text-emerald-400 font-mono text-xs font-semibold">
+                  <div className="flex flex-wrap items-center justify-between gap-3 bg-gray-950/80 p-3.5 rounded-xl border border-white/10">
+                    <div className="flex items-center gap-2 text-emerald-400 font-mono text-xs font-bold">
                       <Sparkles size={16} />
                       Consensus Confidence Score: {msg.verdict.confidence_score}%
                     </div>
@@ -362,7 +373,7 @@ export default function Chat() {
                     <button
                       onClick={handleSendEmail}
                       disabled={sendingEmail}
-                      className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium text-xs px-4 py-2 rounded-xl shadow-lg shadow-purple-900/30 transition-all cursor-pointer disabled:opacity-50 border border-white/10"
+                      className="flex items-center gap-2 bg-gradient-to-r from-[#8028A3] via-purple-600 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-lg shadow-purple-900/30 transition-all cursor-pointer disabled:opacity-50 border border-white/10"
                     >
                       {sendingEmail ? (
                         <>
@@ -392,24 +403,24 @@ export default function Chat() {
         <div ref={messagesEndRef} />
       </main>
 
-      {/* Floating Prompt Input Form */}
-      <footer className="p-4 md:p-6 bg-[#070A14]/90 border-t border-white/10 sticky bottom-0 z-30 backdrop-blur-md">
+      {/* Floating Prompt Input Footer */}
+      <footer className="p-4 md:p-6 bg-[#070A14]/95 border-t border-white/10 sticky bottom-0 z-30 backdrop-blur-md shrink-0">
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex items-center gap-3">
           <div className="flex-1 relative">
             <input
               type="text"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder={isProcessing ? 'Deliberation in progress...' : 'Ask a question to trigger the 7-agent deliberation pipeline...'}
+              placeholder={isProcessing ? 'Veritas AI deliberation in progress...' : 'Ask Veritas AI a question to trigger the 7-agent pipeline...'}
               disabled={isProcessing}
-              className="w-full bg-gray-950/80 border border-white/15 rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-purple-500 placeholder-gray-500 disabled:opacity-50 transition-colors shadow-inner"
+              className="w-full bg-gray-950/90 border border-white/15 rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-purple-500 placeholder-gray-500 disabled:opacity-50 transition-colors shadow-inner"
             />
           </div>
 
           <button
             type="submit"
             disabled={!prompt.trim() || isProcessing}
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white p-3.5 rounded-2xl transition-all shadow-lg shadow-purple-900/30 disabled:opacity-50 cursor-pointer border border-white/10 shrink-0"
+            className="bg-gradient-to-r from-[#8028A3] via-purple-600 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white p-3.5 rounded-2xl transition-all shadow-xl shadow-purple-900/40 disabled:opacity-50 cursor-pointer border border-white/10 shrink-0"
           >
             {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
           </button>

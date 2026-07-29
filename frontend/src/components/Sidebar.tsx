@@ -10,11 +10,11 @@ import {
   Pin,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import EmailSettings from './EmailSettings';
-
 
 const API_URL = 'http://localhost:8000/api';
 
@@ -32,9 +32,10 @@ export default function Sidebar() {
 
   useEffect(() => {
     const fetchSessions = async () => {
+      if (!userId) return;
       try {
         const res = await axios.get(`${API_URL}/sessions`, {
-          params: { user_id: userId || undefined },
+          params: { user_id: userId },
         });
         setSessions(res.data);
       } catch (err) {
@@ -69,7 +70,7 @@ export default function Sidebar() {
       {/* Collapse Toggle Button */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-6 bg-gray-900 border border-white/20 text-gray-400 hover:text-white p-1 rounded-full shadow-lg z-30 transition-colors cursor-pointer"
+        className="absolute -right-3 top-6 bg-purple-900 border border-purple-500/40 text-purple-200 hover:text-white p-1 rounded-full shadow-lg z-30 transition-colors cursor-pointer"
         title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
       >
         {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
@@ -78,18 +79,18 @@ export default function Sidebar() {
       {/* Brand Header */}
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 via-purple-600 to-cyan-500 flex items-center justify-center font-extrabold text-white shadow-lg shadow-purple-900/30 text-sm shrink-0 border border-white/20">
-            AJ
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#8028A3] via-purple-600 to-[#00F5D4] flex items-center justify-center font-black text-white shadow-lg shadow-purple-900/40 text-base shrink-0 border border-white/20">
+            ✨
           </div>
           {!isCollapsed && (
             <div className="overflow-hidden">
-              <h2 className="text-sm font-bold text-white flex items-center gap-1.5">
-                AI Jury Pro
-                <span className="text-[9px] font-mono font-semibold bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded border border-cyan-500/30 uppercase">
+              <h2 className="text-sm font-black text-white flex items-center gap-1.5">
+                Veritas AI
+                <span className="text-[9px] font-mono byjus-badge-gold px-1.5 py-0.5 rounded uppercase">
                   v2.5
                 </span>
               </h2>
-              <p className="text-[11px] text-gray-400 truncate">Isolated Workspace</p>
+              <p className="text-[11px] text-gray-400 truncate">Multi-Agent Truth Engine</p>
             </div>
           )}
         </div>
@@ -97,7 +98,7 @@ export default function Sidebar() {
         {!isCollapsed && (
           <button
             onClick={() => navigate('/chat')}
-            className="w-full mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white py-2.5 px-4 rounded-xl transition-all shadow-lg shadow-purple-900/30 text-xs font-semibold cursor-pointer border border-white/10"
+            className="w-full mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-[#8028A3] via-purple-600 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white py-2.5 px-4 rounded-xl transition-all shadow-lg shadow-purple-900/30 text-xs font-bold cursor-pointer border border-white/10"
           >
             <Plus size={16} />
             <span>New Deliberation</span>
@@ -109,64 +110,75 @@ export default function Sidebar() {
       <div className="px-3 py-2 border-b border-white/10 space-y-1">
         <button
           onClick={() => navigate('/')}
-          className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-xs font-medium cursor-pointer ${
+          className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-xs font-bold cursor-pointer ${
             location.pathname === '/'
-              ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30'
+              ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 shadow'
               : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
           }`}
-          title="Home"
+          title="Home Page"
         >
-          <LayoutDashboard size={16} className="shrink-0 text-cyan-400" />
-          {!isCollapsed && <span>Home</span>}
+          <LayoutDashboard size={16} className="shrink-0 text-yellow-400" />
+          {!isCollapsed && <span>Home (Landing)</span>}
+        </button>
+
+        <button
+          onClick={() => navigate('/chat')}
+          className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-xs font-bold cursor-pointer ${
+            location.pathname.startsWith('/chat')
+              ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 shadow'
+              : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+          }`}
+          title="Chat Deliberation"
+        >
+          <Sparkles size={16} className="shrink-0 text-cyan-400" />
+          {!isCollapsed && <span>Chat Workspace</span>}
         </button>
 
         <button
           onClick={() => navigate('/dashboard')}
-          className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-xs font-medium cursor-pointer ${
+          className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-xs font-bold cursor-pointer ${
             location.pathname === '/dashboard'
-              ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30'
+              ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 shadow'
               : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
           }`}
-          title="Dashboard"
+          title="Analytics Dashboard"
         >
           <BarChart3 size={16} className="shrink-0 text-purple-400" />
-          {!isCollapsed && <span>Dashboard</span>}
+          {!isCollapsed && <span>Analytics</span>}
         </button>
 
         <button
           onClick={() => navigate('/profile')}
-          className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-xs font-medium cursor-pointer ${
+          className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-xs font-bold cursor-pointer ${
             location.pathname === '/profile'
-              ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30'
+              ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 shadow'
               : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
           }`}
-          title="Account Profile"
+          title="Account Settings"
         >
           <User size={16} className="shrink-0 text-emerald-400" />
           {!isCollapsed && <span>Account & Settings</span>}
         </button>
       </div>
 
-      {/* Session History & Search */}
+      {/* User-Isolated Session History */}
       {!isCollapsed && (
         <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
-          {/* Search Box */}
           <div className="relative mb-3">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search user sessions..."
-              className="w-full bg-gray-950/60 border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-gray-200 outline-none focus:border-purple-500 placeholder-gray-600"
+              placeholder="Search your sessions..."
+              className="w-full bg-gray-950/80 border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-gray-200 outline-none focus:border-purple-500 placeholder-gray-600"
             />
           </div>
 
-          {/* Pinned Sessions */}
           {pinnedList.length > 0 && (
             <div className="mb-3">
-              <h3 className="text-[10px] font-semibold text-purple-400 uppercase tracking-wider mb-1.5 px-1 flex items-center gap-1">
-                <Pin size={10} /> Pinned
+              <h3 className="text-[10px] font-bold text-yellow-400 uppercase tracking-wider mb-1.5 px-1 flex items-center gap-1">
+                <Pin size={10} /> Pinned Queries
               </h3>
               {pinnedList.map((session) => (
                 <div
@@ -174,7 +186,7 @@ export default function Sidebar() {
                   onClick={() => navigate(`/chat/${session.session_id}`)}
                   className={`group flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer transition-colors ${
                     location.pathname === `/chat/${session.session_id}`
-                      ? 'bg-purple-600/20 text-purple-200 border border-purple-500/30'
+                      ? 'bg-purple-600/25 text-purple-200 border border-purple-500/30'
                       : 'text-gray-400 hover:bg-white/5'
                   }`}
                 >
@@ -190,10 +202,9 @@ export default function Sidebar() {
             </div>
           )}
 
-          {/* Recent Sessions */}
           <div>
-            <h3 className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5 px-1">
-              Your Deliberations ({recentList.length})
+            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1">
+              Your Queries ({recentList.length})
             </h3>
             {recentList.map((session) => (
               <div
@@ -201,7 +212,7 @@ export default function Sidebar() {
                 onClick={() => navigate(`/chat/${session.session_id}`)}
                 className={`group flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer transition-colors ${
                   location.pathname === `/chat/${session.session_id}`
-                    ? 'bg-purple-600/20 text-purple-200 border border-purple-500/30'
+                    ? 'bg-purple-600/25 text-purple-200 border border-purple-500/30'
                     : 'text-gray-400 hover:bg-white/5'
                 }`}
               >
@@ -212,7 +223,7 @@ export default function Sidebar() {
 
                 <div className="flex items-center gap-1 shrink-0">
                   {session.confidence_score && (
-                    <span className="text-[10px] text-emerald-400 font-mono">{session.confidence_score}%</span>
+                    <span className="text-[10px] text-emerald-400 font-mono font-bold">{session.confidence_score}%</span>
                   )}
                   <button onClick={(e) => togglePin(e, session.session_id)} className="opacity-0 group-hover:opacity-100 p-1 hover:text-purple-300">
                     <Pin size={10} />
@@ -223,27 +234,26 @@ export default function Sidebar() {
 
             {recentList.length === 0 && (
               <p className="text-[11px] text-gray-500 px-1 italic">
-                {searchQuery ? 'No matching sessions.' : 'No sessions recorded yet.'}
+                {searchQuery ? 'No matching sessions.' : 'No sessions recorded for your user.'}
               </p>
             )}
           </div>
         </div>
       )}
 
-      {/* Bottom User Card & SMTP Config */}
+      {/* User Profile Card & Email Config */}
       {!isCollapsed && (
-        <div className="p-3 border-t border-white/10 space-y-2 bg-gray-950/40">
+        <div className="p-3 border-t border-white/10 space-y-2 bg-gray-950/60">
           <EmailSettings />
 
-          {/* Logged in User Profile Card */}
-          <div className="bg-gray-900/80 border border-white/10 rounded-xl p-2.5 flex items-center justify-between">
+          <div className="bg-gray-900/90 border border-white/10 rounded-xl p-2.5 flex items-center justify-between">
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="w-7 h-7 rounded-lg bg-purple-600/40 border border-purple-500/50 flex items-center justify-center font-bold text-purple-200 text-xs shrink-0">
-                {username[0]?.toUpperCase() || 'U'}
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#8028A3] to-cyan-500 flex items-center justify-center font-bold text-white text-xs shrink-0 border border-white/20">
+                {username[0]?.toUpperCase() || 'V'}
               </div>
               <div className="overflow-hidden">
-                <p className="text-xs font-semibold text-gray-200 truncate">{username}</p>
-                <p className="text-[10px] text-gray-400 truncate">{userEmail || 'Isolated Session'}</p>
+                <p className="text-xs font-bold text-gray-200 truncate">{username}</p>
+                <p className="text-[10px] text-gray-400 truncate">{userEmail || 'Authenticated User'}</p>
               </div>
             </div>
 

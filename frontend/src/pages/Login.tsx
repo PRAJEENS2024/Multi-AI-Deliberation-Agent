@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, ArrowRight, Loader2, UserPlus, LogIn } from 'lucide-react';
+import { Sparkles, ArrowRight, Loader2, UserPlus, LogIn, ShieldCheck, Zap, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -39,7 +39,9 @@ export default function Login() {
           }
           localStorage.setItem('username', username);
           localStorage.setItem('user_id', res.data.user_id || username);
-          navigate('/chat');
+
+          // Flow requirement: Login -> Main Landing Page (Home)
+          navigate('/');
         }
       } else {
         if (!email || !email.includes('@')) {
@@ -53,17 +55,15 @@ export default function Login() {
           localStorage.setItem('user_email', email);
           localStorage.setItem('username', username);
           localStorage.setItem('user_id', res.data.user_id || username);
-          setSuccessMsg('Account created successfully! Redirecting...');
-          setTimeout(() => navigate('/chat'), 800);
+          setSuccessMsg('Account registered successfully! Loading Home Page...');
+          setTimeout(() => navigate('/'), 800);
         }
       }
-
     } catch (err: any) {
-      setError(err.response?.data?.detail || (isLoginMode ? 'Invalid credentials' : 'Registration failed'));
+      setError(err.response?.data?.detail || (isLoginMode ? 'Invalid username or password' : 'Registration failed'));
     } finally {
       setIsLoading(false);
     }
-
   };
 
   const toggleMode = () => {
@@ -74,89 +74,123 @@ export default function Login() {
   };
 
   return (
-    <div className="w-full min-h-screen flex items-center justify-center bg-dark-bg p-4 relative overflow-hidden">
-      {/* Background glowing orb */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-primary/20 rounded-full blur-[100px] pointer-events-none" />
+    <div className="w-full min-h-screen bg-[#070A14] flex items-center justify-center p-4 relative overflow-y-auto font-sans">
+      {/* BYJU'S Vibrant Background Glow Orbs */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-80 h-80 bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-md my-8 relative z-10"
       >
-        <div className="glass-panel p-8 relative z-10">
-          <div className="flex flex-col items-center justify-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-bold text-white shadow-lg shadow-brand-glow mb-4">
-              <ShieldAlert size={32} />
+        <div className="byjus-card p-8 relative overflow-hidden border border-purple-500/30">
+          {/* Top Brand Banner */}
+          <div className="flex flex-col items-center justify-center mb-8 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#8028A3] via-purple-600 to-[#00F5D4] flex items-center justify-center font-black text-white shadow-xl shadow-purple-900/40 mb-4 border border-white/20 float-element">
+              <Sparkles size={32} />
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-white mb-2">AI Jury</h1>
-            <p className="text-gray-400 text-sm text-center">Secure Multi-Agent Intelligence System</p>
+            <h1 className="text-3xl font-black tracking-tight text-white mb-1 flex items-center gap-2">
+              Veritas AI
+              <span className="text-xs font-mono font-bold byjus-badge-gold px-2 py-0.5 rounded-full">
+                v2.5
+              </span>
+            </h1>
+            <p className="text-gray-400 text-xs mt-1">Multi-Agent Intelligence & Deliberation Platform</p>
           </div>
 
-          {/* Toggle Tabs */}
-          <div className="flex bg-dark-surface p-1 rounded-xl mb-6 border border-dark-border">
-            <button 
+          {/* BYJU'S Interactive Tab Selector */}
+          <div className="flex bg-gray-950 p-1.5 rounded-2xl mb-6 border border-white/10">
+            <button
               type="button"
-              onClick={() => { if (!isLoginMode) toggleMode(); }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-all cursor-pointer ${isLoginMode ? 'bg-dark-bg text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}
+              onClick={() => {
+                if (!isLoginMode) toggleMode();
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                isLoginMode
+                  ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-lg shadow-purple-900/30'
+                  : 'text-gray-400 hover:text-gray-200'
+              }`}
             >
-              <LogIn size={16} /> Sign In
+              <LogIn size={15} /> Sign In
             </button>
-            <button 
+            <button
               type="button"
-              onClick={() => { if (isLoginMode) toggleMode(); }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-all cursor-pointer ${!isLoginMode ? 'bg-dark-bg text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}
+              onClick={() => {
+                if (isLoginMode) toggleMode();
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                !isLoginMode
+                  ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-lg shadow-purple-900/30'
+                  : 'text-gray-400 hover:text-gray-200'
+              }`}
             >
-              <UserPlus size={16} /> Sign Up
+              <UserPlus size={15} /> Sign Up
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">Username</label>
+            <div>
+              <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
+                Username
+              </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter username"
-                className="w-full bg-dark-surface border border-dark-border outline-none rounded-xl p-4 text-white placeholder-gray-600 focus:border-brand-primary transition-colors"
+                className="w-full bg-gray-950/80 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:border-purple-500 transition-colors placeholder-gray-600"
                 autoFocus
               />
             </div>
 
-            {/* Email field - only shown for signup */}
             {!isLoginMode && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Email</label>
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
+                  Email Address
+                </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. prajeen114@gmail.com"
-                  className="w-full bg-dark-surface border border-dark-border outline-none rounded-xl p-4 text-white placeholder-gray-600 focus:border-brand-primary transition-colors"
+                  placeholder="e.g. user@example.com"
+                  className="w-full bg-gray-950/80 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:border-purple-500 transition-colors placeholder-gray-600"
                 />
-
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">Password</label>
+            <div>
+              <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
+                Password
+              </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
-                className="w-full bg-dark-surface border border-dark-border outline-none rounded-xl p-4 text-white placeholder-gray-600 focus:border-brand-primary transition-colors"
+                className="w-full bg-gray-950/80 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:border-purple-500 transition-colors placeholder-gray-600"
               />
             </div>
 
             <AnimatePresence>
               {error && (
-                <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="text-red-400 text-sm text-center font-medium mt-2">
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="text-red-400 text-xs text-center font-semibold bg-red-950/30 p-2.5 rounded-xl border border-red-500/30"
+                >
                   {error}
                 </motion.p>
               )}
               {successMsg && (
-                <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="text-green-400 text-sm text-center font-medium mt-2">
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="text-emerald-400 text-xs text-center font-semibold bg-emerald-950/30 p-2.5 rounded-xl border border-emerald-500/30"
+                >
                   {successMsg}
                 </motion.p>
               )}
@@ -165,15 +199,34 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading || !username || !password || (!isLoginMode && !email)}
-              className="w-full mt-4 bg-brand-primary hover:bg-brand-primary/90 text-white font-medium p-4 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:hover:bg-brand-primary shadow-lg shadow-brand-glow cursor-pointer"
+              className="w-full mt-4 bg-gradient-to-r from-[#8028A3] via-purple-600 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-bold p-4 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 shadow-xl shadow-purple-900/40 cursor-pointer border border-white/10"
             >
-              {isLoading ? <Loader2 size={20} className="animate-spin" /> : (
+              {isLoading ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : (
                 <>
-                  {isLoginMode ? 'Authenticate' : 'Create Account'} <ArrowRight size={18} />
+                  <span>{isLoginMode ? 'Sign In & Enter Home' : 'Create Account & Continue'}</span>
+                  <ArrowRight size={18} />
                 </>
               )}
             </button>
           </form>
+
+          {/* BYJU'S Feature Badges Footer */}
+          <div className="mt-6 pt-4 border-t border-white/10 grid grid-cols-3 gap-2 text-center text-[10px] text-gray-400 font-mono">
+            <div className="flex items-center justify-center gap-1">
+              <ShieldCheck className="w-3 h-3 text-cyan-400" />
+              <span>Isolated</span>
+            </div>
+            <div className="flex items-center justify-center gap-1">
+              <Zap className="w-3 h-3 text-yellow-400" />
+              <span>7 AI Agents</span>
+            </div>
+            <div className="flex items-center justify-center gap-1">
+              <Layers className="w-3 h-3 text-purple-400" />
+              <span>LangGraph</span>
+            </div>
+          </div>
         </div>
       </motion.div>
     </div>

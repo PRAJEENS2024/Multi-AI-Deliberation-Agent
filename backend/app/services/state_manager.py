@@ -183,9 +183,10 @@ def get_all_sessions(user_id: Optional[str] = None) -> list:
     """Returns user-isolated list of sessions for sidebar and search."""
     session_list = []
     for sid, state in reversed(sessions.items()):
-        # Multi-tenant data isolation check
-        if user_id and state.user_id and state.user_id != user_id:
-            continue
+        # Strict Multi-tenant data isolation check
+        if user_id:
+            if state.user_id != user_id:
+                continue
         session_list.append({
             "session_id": state.session_id,
             "prompt": state.prompt,
@@ -209,10 +210,11 @@ def save_email_config(config: EmailConfig):
 
 # ── Agent Metrics ─────────────────────────────────────────────────────────────
 def get_agent_metrics(user_id: Optional[str] = None) -> AgentMetrics:
-    """Calculate aggregate metrics scoped to specific user for isolated dashboard."""
+    """Calculate aggregate metrics scoped strictly to specific user for isolated dashboard."""
     target_sessions = list(sessions.values())
     if user_id:
-        target_sessions = [s for s in target_sessions if not s.user_id or s.user_id == user_id]
+        target_sessions = [s for s in target_sessions if s.user_id == user_id]
+
 
     total_sessions = len(target_sessions)
     completed_sessions = [s for s in target_sessions if s.verdict is not None]
