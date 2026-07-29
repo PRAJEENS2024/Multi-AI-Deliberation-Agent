@@ -3,7 +3,8 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Server, Lock, User, CheckCircle, XCircle, Loader2, Save, Send } from 'lucide-react';
 
-const API_URL = 'http://localhost:8000/api';
+import { API_URL } from '../config';
+
 
 export default function EmailSettings() {
   const [isOpen, setIsOpen] = useState(false);

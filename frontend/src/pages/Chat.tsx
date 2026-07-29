@@ -19,7 +19,8 @@ import ReactMarkdown from 'react-markdown';
 import { PipelineGraph } from '../components/PipelineGraph';
 import { AgentExecutionPanel } from '../components/AgentExecutionPanel';
 
-const API_URL = 'http://localhost:8000/api';
+import { API_URL } from '../config';
+
 
 function ToastNotification({
   message,

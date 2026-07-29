@@ -16,7 +16,8 @@ import {
   Zap,
 } from 'lucide-react';
 
-const API_URL = 'http://localhost:8000/api';
+import { API_URL } from '../config';
+
 
 interface AgentMetric {
   agent_name: string;

@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Download, FileText, FileCode, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api';
+import { API_URL } from '../config';
+
 
 interface ExportReportProps {
   sessionId: string;

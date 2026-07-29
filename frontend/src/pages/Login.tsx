@@ -4,7 +4,8 @@ import { Sparkles, ArrowRight, Loader2, UserPlus, LogIn, ShieldCheck, Zap, Layer
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api';
+import { API_URL } from '../config';
+
 
 export default function Login() {
   const [isLoginMode, setIsLoginMode] = useState(true);

@@ -16,7 +16,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import EmailSettings from './EmailSettings';
 
-const API_URL = 'http://localhost:8000/api';
+import { API_URL } from '../config';
+
 
 export default function Sidebar() {
   const navigate = useNavigate();
