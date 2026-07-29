@@ -6,7 +6,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import AgentFlowDiagram from '../components/AgentFlowDiagram';
 import ConfidenceTimeline from '../components/ConfidenceTimeline';
-import ExportReport from '../components/ExportReport';
+
 
 const API_URL = 'http://localhost:8000/api';
 
@@ -253,9 +253,9 @@ export default function Chat() {
                 <BarChart3 size={14} />
                 <span className="hidden sm:inline">Timeline</span>
               </button>
-              <ExportReport sessionId={sessionId!} />
             </>
           )}
+
         </div>
       </header>
 
@@ -353,10 +353,10 @@ export default function Chat() {
                               onClick={handleSendEmail}
                               disabled={sendingEmail}
                               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 text-white rounded-xl text-xs font-semibold shadow-lg shadow-brand-glow transition-all cursor-pointer disabled:opacity-50"
-                              title={userEmail ? `Send PDF report to ${userEmail}` : 'Send PDF report to email'}
+                              title={userEmail ? `Send PDF & Word Document to ${userEmail}` : 'Send PDF & Word Document to email'}
                             >
                               {sendingEmail ? <Loader2 size={14} className="animate-spin" /> : <SendHorizonal size={14} />}
-                              <span>{userEmail ? `Send PDF to ${userEmail}` : 'Send PDF Report to Email'}</span>
+                              <span>{userEmail ? `Send PDF & Document to ${userEmail}` : 'Send PDF & Document to Email'}</span>
                             </button>
                           </div>
 
