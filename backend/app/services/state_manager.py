@@ -180,13 +180,24 @@ def log_event(session_id: str, message: str, level: str = "INFO"):
         update_session(session_id, state)
 
 def get_all_sessions(user_id: Optional[str] = None) -> list:
-    """Returns user-isolated list of sessions for sidebar and search."""
+    """Returns 100% user-isolated list of sessions for sidebar and search."""
+    if not user_id or not str(user_id).strip():
+        return []
+
+    target_uid = str(user_id).strip()
+    target_email = get_user_email(target_uid)
+
     session_list = []
     for sid, state in reversed(sessions.items()):
-        # Strict Multi-tenant data isolation check
-        if user_id:
-            if state.user_id != user_id:
-                continue
+        is_owner = (state.user_id == target_uid)
+        if not is_owner and state.user_email and target_email:
+            if state.user_email.lower().strip() == target_email.lower().strip():
+                is_owner = True
+                state.user_id = target_uid
+
+        if not is_owner:
+            continue
+
         session_list.append({
             "session_id": state.session_id,
             "prompt": state.prompt,
@@ -211,9 +222,28 @@ def save_email_config(config: EmailConfig):
 # ── Agent Metrics ─────────────────────────────────────────────────────────────
 def get_agent_metrics(user_id: Optional[str] = None) -> AgentMetrics:
     """Calculate aggregate metrics scoped strictly to specific user for isolated dashboard."""
-    target_sessions = list(sessions.values())
-    if user_id:
-        target_sessions = [s for s in target_sessions if s.user_id == user_id]
+    if not user_id or not str(user_id).strip():
+        return AgentMetrics(
+            total_sessions=0,
+            avg_confidence=0.0,
+            total_claims_verified=0,
+            total_disputes_resolved=0,
+            agent_performance=[],
+            recent_sessions=[],
+        )
+
+    target_uid = str(user_id).strip()
+    target_email = get_user_email(target_uid)
+
+    target_sessions = []
+    for s in sessions.values():
+        is_owner = (s.user_id == target_uid)
+        if not is_owner and s.user_email and target_email:
+            if s.user_email.lower().strip() == target_email.lower().strip():
+                is_owner = True
+        if is_owner:
+            target_sessions.append(s)
+
 
 
     total_sessions = len(target_sessions)

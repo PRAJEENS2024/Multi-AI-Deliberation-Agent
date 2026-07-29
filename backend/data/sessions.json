@@ -3947,7 +3947,8 @@
       }
     ],
     "total_duration_ms": null,
-    "created_at": "2026-07-28T15:54:00.270517"
+    "created_at": "2026-07-28T15:54:00.270517",
+    "user_id": "prajeens"
   },
   "558a74f1-e32c-4940-a123-d061ea48dbb4": {
     "session_id": "558a74f1-e32c-4940-a123-d061ea48dbb4",
@@ -5842,7 +5843,8 @@
       }
     ],
     "total_duration_ms": null,
-    "created_at": "2026-07-28T23:32:27.839845"
+    "created_at": "2026-07-28T23:32:27.839845",
+    "user_id": "testuser_jetski"
   },
   "ec17e3f6-dfb0-4188-a063-c0d1f840e75e": {
     "session_id": "ec17e3f6-dfb0-4188-a063-c0d1f840e75e",
@@ -6370,7 +6372,8 @@
       }
     ],
     "total_duration_ms": null,
-    "created_at": "2026-07-28T23:43:30.080758"
+    "created_at": "2026-07-28T23:43:30.080758",
+    "user_id": "testuser_jetski"
   },
   "8f50fa14-c1f4-4446-9d38-699d8aeeb96d": {
     "session_id": "8f50fa14-c1f4-4446-9d38-699d8aeeb96d",
@@ -6811,7 +6814,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-28T23:55:25.439335"
+    "created_at": "2026-07-28T23:55:25.439335",
+    "user_id": "abhi"
   },
   "29646119-6f33-4957-9cc1-bdda9b844c1c": {
     "session_id": "29646119-6f33-4957-9cc1-bdda9b844c1c",
@@ -7295,7 +7299,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T09:17:00.288367"
+    "created_at": "2026-07-29T09:17:00.288367",
+    "user_id": "agentx"
   },
   "2c148c36-736d-4a66-99c2-96e1b7cdc641": {
     "session_id": "2c148c36-736d-4a66-99c2-96e1b7cdc641",
@@ -7755,7 +7760,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T09:52:55.934683"
+    "created_at": "2026-07-29T09:52:55.934683",
+    "user_id": "balasri"
   },
   "ac8f8291-ed8f-4d04-b9be-2866e3095a81": {
     "session_id": "ac8f8291-ed8f-4d04-b9be-2866e3095a81",
@@ -8276,7 +8282,8 @@
       }
     ],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T10:16:20.318209"
+    "created_at": "2026-07-29T10:16:20.318209",
+    "user_id": "balasri"
   },
   "34365093-7b1e-4d11-b623-ee232bdcc437": {
     "session_id": "34365093-7b1e-4d11-b623-ee232bdcc437",
@@ -8746,7 +8753,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T10:36:14.275155"
+    "created_at": "2026-07-29T10:36:14.275155",
+    "user_id": "balasri"
   },
   "f0003159-913e-4852-a53c-058908e15fcf": {
     "session_id": "f0003159-913e-4852-a53c-058908e15fcf",
@@ -9165,7 +9173,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T10:51:34.926342"
+    "created_at": "2026-07-29T10:51:34.926342",
+    "user_id": "balasri"
   },
   "b9b528ac-66a8-4fa4-8d44-ae13ec184c61": {
     "session_id": "b9b528ac-66a8-4fa4-8d44-ae13ec184c61",
@@ -9588,7 +9597,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T11:05:57.586116"
+    "created_at": "2026-07-29T11:05:57.586116",
+    "user_id": "balasri"
   },
   "cfe23ee7-c1af-4ab7-807d-7a9bc6c5ba4e": {
     "session_id": "cfe23ee7-c1af-4ab7-807d-7a9bc6c5ba4e",
@@ -9641,7 +9651,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:02:50.313019"
+    "created_at": "2026-07-29T12:02:50.313019",
+    "user_id": "balasri"
   },
   "5dc2444c-0ddb-49b9-a099-05ade554b834": {
     "session_id": "5dc2444c-0ddb-49b9-a099-05ade554b834",
@@ -9689,7 +9700,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:04:46.203334"
+    "created_at": "2026-07-29T12:04:46.203334",
+    "user_id": "balasri"
   },
   "a2e418b0-05dc-419f-8164-1fec9b1cbbe0": {
     "session_id": "a2e418b0-05dc-419f-8164-1fec9b1cbbe0",
@@ -9808,7 +9820,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:09:46.569457"
+    "created_at": "2026-07-29T12:09:46.569457",
+    "user_id": "agentx"
   },
   "63792565-bedb-4465-a839-c501f0053a8d": {
     "session_id": "63792565-bedb-4465-a839-c501f0053a8d",
@@ -9927,7 +9940,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:14:37.346490"
+    "created_at": "2026-07-29T12:14:37.346490",
+    "user_id": "prajeens"
   },
   "92b4db27-7975-4bdd-915a-4b2b1881b794": {
     "session_id": "92b4db27-7975-4bdd-915a-4b2b1881b794",
@@ -10046,7 +10060,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:16:03.981916"
+    "created_at": "2026-07-29T12:16:03.981916",
+    "user_id": "agentx"
   },
   "b2cda8c1-5af6-4bd4-ad28-5cebc3bc79e1": {
     "session_id": "b2cda8c1-5af6-4bd4-ad28-5cebc3bc79e1",
@@ -10067,7 +10082,8 @@
     "logs": [],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:19:04.646909"
+    "created_at": "2026-07-29T12:19:04.646909",
+    "user_id": "agentx"
   },
   "463ec93a-1204-4a20-98b3-47810679ab9c": {
     "session_id": "463ec93a-1204-4a20-98b3-47810679ab9c",
@@ -10115,7 +10131,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:19:12.697112"
+    "created_at": "2026-07-29T12:19:12.697112",
+    "user_id": "agentx"
   },
   "6dff9b50-a3d2-451a-bd4d-63575981c0cd": {
     "session_id": "6dff9b50-a3d2-451a-bd4d-63575981c0cd",
@@ -10136,7 +10153,8 @@
     "logs": [],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:23:32.207063"
+    "created_at": "2026-07-29T12:23:32.207063",
+    "user_id": "agentx"
   },
   "1701b289-aae6-4f30-8024-fba1b0fc4fb4": {
     "session_id": "1701b289-aae6-4f30-8024-fba1b0fc4fb4",
@@ -10157,7 +10175,8 @@
     "logs": [],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:23:39.764269"
+    "created_at": "2026-07-29T12:23:39.764269",
+    "user_id": "agentx"
   },
   "85804b17-3102-423b-8f68-8f512bd46267": {
     "session_id": "85804b17-3102-423b-8f68-8f512bd46267",
@@ -10276,7 +10295,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:23:46.811194"
+    "created_at": "2026-07-29T12:23:46.811194",
+    "user_id": "agentx"
   },
   "a82e82c7-a47e-4545-93a7-999569a1769a": {
     "session_id": "a82e82c7-a47e-4545-93a7-999569a1769a",
@@ -10324,7 +10344,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:24:29.949741"
+    "created_at": "2026-07-29T12:24:29.949741",
+    "user_id": "agentx"
   },
   "9c916efe-9d2d-4cfc-9376-6fd45d04cd65": {
     "session_id": "9c916efe-9d2d-4cfc-9376-6fd45d04cd65",
@@ -10359,7 +10380,8 @@
     "logs": [],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:24:48.313248"
+    "created_at": "2026-07-29T12:24:48.313248",
+    "user_id": "agentx"
   },
   "a9efa442-9cc4-4296-bd7b-98442ea8398c": {
     "session_id": "a9efa442-9cc4-4296-bd7b-98442ea8398c",
@@ -10583,7 +10605,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:25:15.663750"
+    "created_at": "2026-07-29T12:25:15.663750",
+    "user_id": "agentx"
   },
   "0c3ecea3-4eb3-4082-bd22-1e2d0ebbd321": {
     "session_id": "0c3ecea3-4eb3-4082-bd22-1e2d0ebbd321",
@@ -11030,7 +11053,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:28:05.161616"
+    "created_at": "2026-07-29T12:28:05.161616",
+    "user_id": "agentx"
   },
   "aa0d2e7b-042d-4f41-a8ca-c4de62509f09": {
     "session_id": "aa0d2e7b-042d-4f41-a8ca-c4de62509f09",
@@ -11511,7 +11535,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:41:35.935726"
+    "created_at": "2026-07-29T12:41:35.935726",
+    "user_id": "prajeens"
   },
   "43d25659-de48-4b8d-a938-cddd0123c60f": {
     "session_id": "43d25659-de48-4b8d-a938-cddd0123c60f",
@@ -11948,7 +11973,8 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T12:47:17.461041"
+    "created_at": "2026-07-29T12:47:17.461041",
+    "user_id": "tamilselvan"
   },
   "315a0d69-b002-4ded-b816-ba2734f78d6e": {
     "session_id": "315a0d69-b002-4ded-b816-ba2734f78d6e",
@@ -12375,6 +12401,7 @@
     ],
     "history": [],
     "total_duration_ms": null,
-    "created_at": "2026-07-29T22:18:19.767001"
+    "created_at": "2026-07-29T22:18:19.767001",
+    "user_id": "prajeens"
   }
 }

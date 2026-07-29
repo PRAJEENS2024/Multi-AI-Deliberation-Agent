@@ -26,9 +26,10 @@ export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [pinnedSessions, setPinnedSessions] = useState<string[]>([]);
 
-  const userId = localStorage.getItem('user_id') || localStorage.getItem('auth_token')?.replace('token-', '') || '';
-  const username = localStorage.getItem('username') || localStorage.getItem('auth_token')?.replace('token-', '') || 'Guest User';
+  const username = localStorage.getItem('username') || localStorage.getItem('auth_token')?.replace('token-', '') || '';
+  const userId = localStorage.getItem('user_id') || username || '';
   const userEmail = localStorage.getItem('user_email') || '';
+
 
   useEffect(() => {
     const fetchSessions = async () => {
