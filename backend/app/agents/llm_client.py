@@ -177,7 +177,7 @@ async def query_llm(
             except Exception as e:
                 err = str(e).lower()
                 if "429" in err or "rate limit" in err or "rate_limit" in err:
-                    print(f"⚠️ Groq 429 Rate Limit for model '{current_model}'. Switching to fallback model...")
+                    print(f"[WARNING] Groq 429 Rate Limit for model '{current_model}'. Switching to fallback model...")
                     await asyncio.sleep(1)
                     break  # Try next model in fallback_chain
                 else:
@@ -185,6 +185,7 @@ async def query_llm(
                     if attempt < 1:
                         await asyncio.sleep(2)
                         continue
+
 
     return "{}" if response_format == "json" else "I analyzed your query, but the rate limit for the primary 70B model was temporarily reached. Please ask again in a moment for a full deliberation."
 

@@ -45,13 +45,29 @@ def _ts() -> str:
 
 
 def _parse_json(raw: str) -> any:
+    if not raw or not isinstance(raw, str):
+        return {}
     cleaned = raw.strip()
     for fence in ("```json", "```"):
         if cleaned.startswith(fence):
             cleaned = cleaned[len(fence):]
     if cleaned.endswith("```"):
         cleaned = cleaned[:-3]
-    return json.loads(cleaned.strip())
+    cleaned = cleaned.strip()
+    if not cleaned:
+        return {}
+    try:
+        return json.loads(cleaned)
+    except Exception:
+        import re
+        match = re.search(r'(\{.*\}|\[.*\])', cleaned, re.DOTALL)
+        if match:
+            try:
+                return json.loads(match.group(1))
+            except Exception:
+                pass
+        return {}
+
 
 
 def _set_status(sid: str, status: str):
@@ -240,10 +256,36 @@ async def node_fact_checker(state: JuryGraphState) -> JuryGraphState:
 
     ev_summary = " | ".join(ev_parts[:3]) if ev_parts else ""
 
+    safe_claims = []
+    for c in all_claims:
+        if isinstance(c, dict):
+            safe_claims.append(Claim(
+                claim=str(c.get("claim", "")),
+                category=str(c.get("category", "Fact")),
+                confidence=str(c.get("confidence", "Medium")),
+                model=str(c.get("model", p["name"])),
+            ))
+
+    safe_disputed = []
+    for d in disputed_raw:
+        if isinstance(d, dict):
+            sup = d.get("supporting_models", [])
+            opp = d.get("opposing_models", [])
+            if isinstance(sup, str): sup = [sup]
+            if isinstance(opp, str): opp = [opp]
+            safe_disputed.append(DisputedClaim(
+                claim=str(d.get("claim", "")),
+                supporting_models=[str(x) for x in sup] if isinstance(sup, list) else [],
+                opposing_models=[str(x) for x in opp] if isinstance(opp, list) else [],
+                evidence=str(d.get("evidence", "")) if d.get("evidence") else None,
+                status=str(d.get("status", "Verified")),
+                confidence_score=int(d.get("confidence_score", 75)),
+            ))
+
     sess = get_session(sid)
     sess.responses[p["name"]]  = output
-    sess.extracted_claims      = [Claim(**c) for c in all_claims]
-    sess.disputed_claims       = [DisputedClaim(**d) for d in disputed_raw]
+    sess.extracted_claims      = safe_claims
+    sess.disputed_claims       = safe_disputed
     update_session(sid, sess)
     _update_pipeline(sid, p["id"], p["name"], p.get("avatar", ""), p.get("color", "#F59E0B"), "completed")
     _add_timeline_point(sid, "factcheck", p["name"], p.get("avatar", ""), p.get("color", "#F59E0B"), 72, f"Verified {len(all_claims)} claims, found {len(disputed_raw)} disputes")
@@ -361,30 +403,43 @@ async def node_report_formatter(state: JuryGraphState) -> JuryGraphState:
     )
     raw = await query_llm(p["model"], prompt, p["system_instruction"], "json")
 
-    report_data = {
-        "title": f"AI Jury Analysis: {state['prompt'][:60]}",
-        "executive_summary": "",
-        "key_findings": [],
-        "recommendations": [],
-        "sections": [],
-    }
+    report_data = {}
     try:
         parsed = _parse_json(raw)
         if isinstance(parsed, dict):
-            report_data.update({k: v for k, v in parsed.items() if k in report_data})
+            report_data = parsed
     except Exception as e:
         log_event(sid, f"Report formatting parse error: {e}", "ERROR")
+
+    if not report_data.get("title"):
+        report_data["title"] = f"AI Jury Deliberation Report: {state['prompt'][:40]}"
+    if not report_data.get("executive_summary"):
+        report_data["executive_summary"] = state["final_answer"][:300]
+    if not report_data.get("key_findings"):
+        report_data["key_findings"] = ["Comprehensive 7-agent deliberation completed."]
+    if not report_data.get("recommendations"):
+        report_data["recommendations"] = ["Review agent debate transcript."]
+
+    valid_sections = []
+    for s in report_data.get("sections", []):
+        if isinstance(s, dict):
+            valid_sections.append(ReportSection(
+                title=str(s.get("title", s.get("name", "Analysis Section"))),
+                content=str(s.get("content", s.get("body", s.get("text", ""))))
+            ))
+    if not valid_sections:
+        valid_sections.append(ReportSection(title="Synthesized Verdict", content=state["final_answer"]))
 
     sess = get_session(sid)
     consensus = [c for c in sess.extracted_claims if not any(d.claim == c.claim for d in sess.disputed_claims)]
     disputed  = [d for d in sess.disputed_claims if d.evidence and "no results" not in (d.evidence or "").lower()]
 
     report_obj = StructuredReport(
-        title             = report_data.get("title", ""),
-        executive_summary = report_data.get("executive_summary", ""),
-        sections          = [ReportSection(**s) for s in report_data.get("sections", []) if isinstance(s, dict)],
-        key_findings      = report_data.get("key_findings", []),
-        recommendations   = report_data.get("recommendations", []),
+        title             = str(report_data.get("title", "")),
+        executive_summary = str(report_data.get("executive_summary", "")),
+        sections          = valid_sections,
+        key_findings      = [str(x) for x in report_data.get("key_findings", [])],
+        recommendations   = [str(x) for x in report_data.get("recommendations", [])],
         confidence_score  = state["confidence"],
         generated_at      = datetime.now().isoformat(),
         email_sent        = False,
@@ -392,6 +447,7 @@ async def node_report_formatter(state: JuryGraphState) -> JuryGraphState:
     )
 
     sess.verdict = FinalVerdict(
+
         executive_summary   = report_data.get("executive_summary", "Multi-agent consensus verdict."),
         final_answer        = state["final_answer"],
         consensus_claims    = consensus,
