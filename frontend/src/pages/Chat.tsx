@@ -184,11 +184,13 @@ export default function Chat() {
 
   useEffect(() => {
     let interval: any;
+    let errorCount = 0;
     if (isPolling && sessionId) {
       const fetchState = async () => {
         try {
           const res = await axios.get(`${API_URL}/session/${sessionId}`);
           if (res.data) {
+            errorCount = 0;
             setSessionState(res.data);
             setPendingMessages([]);
             if (res.data.status === 'Completed' || res.data.status === 'Error') {
@@ -199,8 +201,12 @@ export default function Chat() {
             }
           }
         } catch (err) {
-          console.error(err);
-          setIsPolling(false);
+          errorCount += 1;
+          console.error('Polling error:', errorCount, err);
+          if (errorCount >= 5) {
+            setIsPolling(false);
+            showToast('Backend connection interrupted. Please ensure server is running.', 'error');
+          }
         }
       };
 
@@ -209,6 +215,7 @@ export default function Chat() {
     }
     return () => clearInterval(interval);
   }, [isPolling, sessionId, showToast]);
+
 
 
   const displayMessages = [];
