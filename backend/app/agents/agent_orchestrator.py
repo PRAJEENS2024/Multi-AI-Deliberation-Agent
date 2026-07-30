@@ -414,8 +414,7 @@ async def node_report_formatter(state: JuryGraphState) -> JuryGraphState:
         log_event(sid, f"Report formatting parse error: {e}", "ERROR")
 
     if not report_data.get("title"):
-        report_data["title"] = f"Veritas AI Deliberation Report: {state['prompt'][:40]}"
-
+        report_data["title"] = f"AI Jury Deliberation Report: {state['prompt'][:40]}"
     if not report_data.get("executive_summary"):
         report_data["executive_summary"] = state["final_answer"][:300]
     if not report_data.get("key_findings"):

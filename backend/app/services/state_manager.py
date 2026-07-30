@@ -47,17 +47,9 @@ def _load_data_from_disk():
             with open(SESSIONS_FILE, "r", encoding="utf-8") as f:
                 raw_sessions = json.load(f)
                 for sid, sdata in raw_sessions.items():
-                    # Auto-migrate/backfill user_id from user_email if user_id is missing or None
-                    if not sdata.get("user_id") and sdata.get("user_email"):
-                        em = sdata.get("user_email").lower().strip()
-                        for uname, udata in users.items():
-                            if isinstance(udata, dict) and udata.get("email") and udata.get("email").lower().strip() == em:
-                                sdata["user_id"] = uname
-                                break
                     sessions[sid] = SessionState(**sdata)
         except Exception as e:
             print(f"Error loading sessions.json: {e}")
-
 
     if os.path.exists(EMAIL_CONFIG_FILE):
         try:
@@ -156,18 +148,11 @@ def update_user_profile(username_or_id: str, updates: dict) -> UserProfile:
     _save_data_to_disk()
     return UserProfile(**cur_dict)
 
-def get_user_email(username_or_id: str) -> Optional[str]:
-    user = users.get(username_or_id)
+def get_user_email(username: str) -> Optional[str]:
+    user = users.get(username)
     if isinstance(user, dict):
         return user.get("email")
-    for u_key, u_val in users.items():
-        if isinstance(u_val, dict):
-            if u_val.get("user_id") == username_or_id or u_key == username_or_id:
-                return u_val.get("email")
-            if u_val.get("email") and u_val.get("email").lower().strip() == str(username_or_id).lower().strip():
-                return u_val.get("email")
     return None
-
 
 def create_session(prompt: str, user_email: str = None, send_email: bool = False, user_id: str = None) -> str:
     session_id = str(uuid.uuid4())
@@ -195,24 +180,13 @@ def log_event(session_id: str, message: str, level: str = "INFO"):
         update_session(session_id, state)
 
 def get_all_sessions(user_id: Optional[str] = None) -> list:
-    """Returns 100% user-isolated list of sessions for sidebar and search."""
-    if not user_id or not str(user_id).strip():
-        return []
-
-    target_uid = str(user_id).strip()
-    target_email = get_user_email(target_uid)
-
+    """Returns user-isolated list of sessions for sidebar and search."""
     session_list = []
     for sid, state in reversed(sessions.items()):
-        is_owner = (state.user_id == target_uid)
-        if not is_owner and state.user_email and target_email:
-            if state.user_email.lower().strip() == target_email.lower().strip():
-                is_owner = True
-                state.user_id = target_uid
-
-        if not is_owner:
-            continue
-
+        # Multi-tenant strict data isolation check
+        if user_id:
+            if state.user_id != user_id:
+                continue
         session_list.append({
             "session_id": state.session_id,
             "prompt": state.prompt,
@@ -236,29 +210,10 @@ def save_email_config(config: EmailConfig):
 
 # ── Agent Metrics ─────────────────────────────────────────────────────────────
 def get_agent_metrics(user_id: Optional[str] = None) -> AgentMetrics:
-    """Calculate aggregate metrics scoped strictly to specific user for isolated dashboard."""
-    if not user_id or not str(user_id).strip():
-        return AgentMetrics(
-            total_sessions=0,
-            avg_confidence=0.0,
-            total_claims_verified=0,
-            total_disputes_resolved=0,
-            agent_performance=[],
-            recent_sessions=[],
-        )
-
-    target_uid = str(user_id).strip()
-    target_email = get_user_email(target_uid)
-
-    target_sessions = []
-    for s in sessions.values():
-        is_owner = (s.user_id == target_uid)
-        if not is_owner and s.user_email and target_email:
-            if s.user_email.lower().strip() == target_email.lower().strip():
-                is_owner = True
-        if is_owner:
-            target_sessions.append(s)
-
+    """Calculate aggregate metrics scoped to specific user for isolated dashboard."""
+    target_sessions = list(sessions.values())
+    if user_id:
+        target_sessions = [s for s in target_sessions if s.user_id == user_id]
 
 
     total_sessions = len(target_sessions)

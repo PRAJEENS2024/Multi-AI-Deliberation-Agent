@@ -1,10 +1,7 @@
 import json
 import os
-import asyncio
-from typing import List, Optional
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Response
-
-
+from typing import List, Optional
 
 
 from app.models.schemas import (
@@ -66,10 +63,8 @@ async def submit_query(request: QueryRequest, background_tasks: BackgroundTasks)
             user_id    = request.user_id,
         )
 
-    asyncio.create_task(run_jury_workflow(session_id))
     background_tasks.add_task(run_jury_workflow, session_id)
     return QueryResponse(session_id=session_id, status="Started")
-
 
 
 # ── Session ───────────────────────────────────────────────────────────────────

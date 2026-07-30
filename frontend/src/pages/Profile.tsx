@@ -15,6 +15,7 @@ import {
   Lock,
 } from 'lucide-react';
 
+
 interface UserProfileData {
   user_id: string;
   username: string;
@@ -98,7 +99,7 @@ export const Profile: React.FC = () => {
         const updated: UserProfileData = await res.json();
         setProfile(updated);
         localStorage.setItem('user_email', email);
-        setStatusMessage({ type: 'success', text: 'Profile & delivery preferences saved!' });
+        setStatusMessage({ type: 'success', text: 'Profile preferences updated successfully!' });
       } else {
         setStatusMessage({ type: 'error', text: 'Failed to update profile. Please try again.' });
       }
@@ -110,29 +111,31 @@ export const Profile: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full overflow-y-auto bg-[#070A14] text-gray-100 p-6 md:p-10 font-sans">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#0D051D] text-gray-100 p-6 md:p-10 font-sans">
+      <div className="max-w-4xl mx-auto">
         {/* Header Navigation */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-8">
           <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-xs font-bold text-gray-300 hover:text-white transition-colors bg-gray-900/80 border border-white/10 px-3.5 py-2 rounded-xl cursor-pointer"
+            onClick={() => navigate('/chat')}
+            className="flex items-center gap-2 text-xs font-bold text-amber-300 hover:text-white transition-colors bg-[#1A0933] border border-white/10 px-3.5 py-2 rounded-xl"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Home Page
+            Back to Chat Section
           </button>
 
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">
-              Veritas Account Settings
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">
+              Veritas AI Account Settings
             </span>
           </div>
         </div>
 
+
+        {/* Status Notification */}
         {statusMessage && (
           <div
-            className={`p-4 rounded-xl border flex items-center gap-3 text-sm font-semibold ${
+            className={`mb-6 p-4 rounded-xl border flex items-center gap-3 text-sm ${
               statusMessage.type === 'success'
                 ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300'
                 : 'bg-red-950/40 border-red-500/30 text-red-300'
@@ -148,31 +151,31 @@ export const Profile: React.FC = () => {
         )}
 
         {/* Profile Card Header */}
-        <div className="byjus-card p-6 border border-purple-500/30 relative overflow-hidden">
+        <div className="glass-panel p-6 mb-8 border border-white/10 relative overflow-hidden">
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="relative">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#8028A3] via-purple-600 to-[#00F5D4] flex items-center justify-center text-3xl font-black text-white shadow-xl shadow-purple-900/30 border-2 border-white/20">
-                {profile.username[0]?.toUpperCase() || 'V'}
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-3xl font-bold text-white shadow-xl shadow-purple-900/30 border-2 border-white/20">
+                {profile.username[0]?.toUpperCase() || 'U'}
               </div>
-              <div className="absolute -bottom-1 -right-1 p-1 bg-yellow-400 rounded-full border-2 border-gray-950">
+              <div className="absolute -bottom-1 -right-1 p-1 bg-cyan-500 rounded-full border-2 border-gray-950">
                 <Camera className="w-3 h-3 text-gray-950" />
               </div>
             </div>
 
             <div>
-              <h1 className="text-2xl font-black text-white flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                 {fullName || profile.username}
-                <span className="text-xs font-mono byjus-badge-gold px-2.5 py-0.5 rounded-full">
+                <span className="text-xs font-mono bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30">
                   Pro License
                 </span>
               </h1>
-              <p className="text-sm text-gray-300 mt-1 flex items-center gap-2">
+              <p className="text-sm text-gray-400 mt-1 flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-cyan-400" />
                 {email || 'No email registered'}
               </p>
-              <div className="flex items-center gap-4 mt-3 text-xs font-mono text-gray-400">
+              <div className="flex items-center gap-4 mt-3 text-xs font-mono text-gray-500">
                 <span>User ID: {profile.user_id.slice(0, 12)}...</span>
-                <span className="text-emerald-400 font-bold">100% Isolated Workspace</span>
+                <span>Isolated Workspace: Active</span>
               </div>
             </div>
           </div>
@@ -180,51 +183,53 @@ export const Profile: React.FC = () => {
 
         {/* Profile Edit Form */}
         <form onSubmit={handleSave} className="space-y-6">
-          <div className="byjus-card p-6 border border-purple-500/30">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-purple-300 mb-4 flex items-center gap-2">
+          {/* Section 1: Personal Profile */}
+          <div className="glass-panel p-6 border border-white/10">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-purple-300 mb-4 flex items-center gap-2">
               <User className="w-4 h-4" /> Personal Information
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">Full Name</label>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">Full Name</label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full bg-gray-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors"
+                  className="w-full bg-gray-950/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors"
                   placeholder="Enter full name"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">Registered Email</label>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">Registered Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-gray-950/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors"
-                  placeholder="user@example.com"
+                  className="w-full bg-gray-950/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors"
+                  placeholder="name@example.com"
                 />
               </div>
             </div>
           </div>
 
-          <div className="byjus-card p-6 border border-purple-500/30">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-cyan-300 mb-4 flex items-center gap-2">
-              <Shield className="w-4 h-4" /> Security & Custom Keys
+          {/* Section 2: Security & API Settings */}
+          <div className="glass-panel p-6 border border-white/10">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-cyan-300 mb-4 flex items-center gap-2">
+              <Shield className="w-4 h-4" /> Security & Custom LLM Keys
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1.5 flex items-center justify-between uppercase tracking-wider">
+                <label className="block text-xs font-medium text-gray-400 mb-1.5 flex items-center justify-between">
                   <span>Custom Groq API Key (Optional)</span>
-                  <span className="text-[10px] text-gray-400 font-mono">Overlays default key for high-throughput queries</span>
+                  <span className="text-[10px] text-gray-500 font-mono">Overlays default key for high-throughput queries</span>
                 </label>
                 <div className="relative">
                   <input
                     type="password"
                     value={groqKey}
                     onChange={(e) => setGroqKey(e.target.value)}
-                    className="w-full bg-gray-950/80 border border-white/10 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-cyan-500 transition-colors"
+                    className="w-full bg-gray-950/60 border border-white/10 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-cyan-500 transition-colors"
                     placeholder="gsk_..."
                   />
                   <Key className="w-4 h-4 text-gray-500 absolute left-3.5 top-3" />
@@ -232,13 +237,13 @@ export const Profile: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">Account Password</label>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">New Account Password</label>
                 <div className="relative">
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-gray-950/80 border border-white/10 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors"
+                    className="w-full bg-gray-950/60 border border-white/10 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors"
                     placeholder="Leave blank to keep existing password"
                   />
                   <Lock className="w-4 h-4 text-gray-500 absolute left-3.5 top-3" />
@@ -247,47 +252,49 @@ export const Profile: React.FC = () => {
             </div>
           </div>
 
-          <div className="byjus-card p-6 border border-purple-500/30">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-emerald-300 mb-4 flex items-center gap-2">
-              <Bell className="w-4 h-4" /> Dual File Delivery Preferences
+          {/* Section 3: Notification Toggles */}
+          <div className="glass-panel p-6 border border-white/10">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-300 mb-4 flex items-center gap-2">
+              <Bell className="w-4 h-4" /> Delivery Preferences
             </h2>
             <div className="space-y-3">
-              <label className="flex items-center justify-between p-3.5 rounded-xl bg-gray-950/60 border border-white/10 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-gray-950/40 border border-white/5 cursor-pointer">
                 <div>
-                  <div className="text-xs font-bold text-gray-200">Automated Dual Email Dispatch</div>
-                  <div className="text-[11px] text-gray-400">Receive PDF (.pdf) and Word Document (.docx) reports automatically after agent deliberation</div>
+                  <div className="text-xs font-medium text-gray-200">Automated Dual Email Dispatch</div>
+                  <div className="text-[11px] text-gray-400">Receive PDF and Word Document reports automatically after agent deliberation</div>
                 </div>
                 <input
                   type="checkbox"
                   checked={emailReports}
                   onChange={(e) => setEmailReports(e.target.checked)}
-                  className="w-4 h-4 accent-purple-500 rounded cursor-pointer"
+                  className="w-4 h-4 accent-purple-500 rounded"
                 />
               </label>
 
-              <label className="flex items-center justify-between p-3.5 rounded-xl bg-gray-950/60 border border-white/10 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-gray-950/40 border border-white/5 cursor-pointer">
                 <div>
-                  <div className="text-xs font-bold text-gray-200">In-App Deliberation Notifications</div>
+                  <div className="text-xs font-medium text-gray-200">In-App Deliberation Notifications</div>
                   <div className="text-[11px] text-gray-400">Show live status updates when jury agents complete verification stages</div>
                 </div>
                 <input
                   type="checkbox"
                   checked={notifications}
                   onChange={(e) => setNotifications(e.target.checked)}
-                  className="w-4 h-4 accent-purple-500 rounded cursor-pointer"
+                  className="w-4 h-4 accent-purple-500 rounded"
                 />
               </label>
             </div>
           </div>
 
+          {/* Submit Action */}
           <div className="flex justify-end">
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 bg-gradient-to-r from-[#8028A3] via-purple-600 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-bold text-sm px-6 py-3.5 rounded-xl shadow-xl shadow-purple-900/40 transition-all disabled:opacity-50 cursor-pointer border border-white/10"
+              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium text-sm px-6 py-3 rounded-xl shadow-lg shadow-purple-900/30 transition-all disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              {saving ? 'Saving Changes...' : 'Save Profile Changes'}
+              {saving ? 'Saving Preferences...' : 'Save Profile Changes'}
             </button>
           </div>
         </form>

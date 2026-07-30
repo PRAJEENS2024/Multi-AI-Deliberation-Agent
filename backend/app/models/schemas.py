@@ -187,7 +187,7 @@ class EmailConfig(BaseModel):
     smtp_port: int = 587
     smtp_user: str = "b.balasrisabhari@gmail.com"
     smtp_pass: str = "kwmr gglp pguj jnlz"
-    sender_name: str = "Veritas AI"
+    sender_name: str = "AI Jury"
     use_tls: bool = True
 
 class SaveEmailConfigRequest(BaseModel):
@@ -195,9 +195,8 @@ class SaveEmailConfigRequest(BaseModel):
     smtp_port: int = 587
     smtp_user: str = "b.balasrisabhari@gmail.com"
     smtp_pass: str = "kwmr gglp pguj jnlz"
-    sender_name: str = "Veritas AI"
+    sender_name: str = "AI Jury"
     use_tls: bool = True
-
 
 
 # ── Export ────────────────────────────────────────────────────────────────────

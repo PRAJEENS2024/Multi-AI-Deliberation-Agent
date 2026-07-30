@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, Loader2, UserPlus, LogIn, ShieldCheck, Zap, Layers } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Loader2, UserPlus, LogIn, Sparkles, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-import { API_URL } from '../config';
-
+const API_URL = 'http://localhost:8000/api';
 
 export default function Login() {
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -40,9 +39,7 @@ export default function Login() {
           }
           localStorage.setItem('username', username);
           localStorage.setItem('user_id', res.data.user_id || username);
-
-          // Flow requirement: Login -> Main Landing Page (Home)
-          navigate('/');
+          navigate('/'); // Redirect to Main Home Page after login
         }
       } else {
         if (!email || !email.includes('@')) {
@@ -56,12 +53,12 @@ export default function Login() {
           localStorage.setItem('user_email', email);
           localStorage.setItem('username', username);
           localStorage.setItem('user_id', res.data.user_id || username);
-          setSuccessMsg('Account registered successfully! Loading Home Page...');
-          setTimeout(() => navigate('/'), 800);
+          setSuccessMsg('Account created successfully! Welcome to Veritas AI.');
+          setTimeout(() => navigate('/'), 600); // Redirect to Main Home Page after signup
         }
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || (isLoginMode ? 'Invalid username or password' : 'Registration failed'));
+      setError(err.response?.data?.detail || (isLoginMode ? 'Invalid credentials' : 'Registration failed'));
     } finally {
       setIsLoading(false);
     }
@@ -75,34 +72,34 @@ export default function Login() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#070A14] flex items-center justify-center p-4 relative overflow-y-auto font-sans">
-      {/* BYJU'S Vibrant Background Glow Orbs */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="w-full min-h-screen flex items-center justify-center bg-[#0D051D] p-4 relative overflow-hidden font-sans">
+      {/* Background Glowing BYJU'S Orbs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/30 rounded-full blur-[120px] pointer-events-none floating-decoration" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-amber-500/20 rounded-full blur-[120px] pointer-events-none floating-decoration" />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-md my-8 relative z-10"
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-md"
       >
-        <div className="byjus-card p-8 relative overflow-hidden border border-purple-500/30">
-          {/* Top Brand Banner */}
-          <div className="flex flex-col items-center justify-center mb-8 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#8028A3] via-purple-600 to-[#00F5D4] flex items-center justify-center font-black text-white shadow-xl shadow-purple-900/40 mb-4 border border-white/20 float-element">
-              <Sparkles size={32} />
+        <div className="glass-panel p-8 relative z-10 border border-white/15 shadow-2xl">
+          {/* Header Brand */}
+          <div className="flex flex-col items-center justify-center mb-8">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-700 via-purple-600 to-amber-400 flex items-center justify-center font-black text-white shadow-xl shadow-purple-900/50 mb-4 border-2 border-white/20">
+              <ShieldCheck size={36} className="text-yellow-300" />
             </div>
-            <h1 className="text-3xl font-black tracking-tight text-white mb-1 flex items-center gap-2">
-              Veritas AI
-              <span className="text-xs font-mono font-bold byjus-badge-gold px-2 py-0.5 rounded-full">
-                v2.5
-              </span>
-            </h1>
-            <p className="text-gray-400 text-xs mt-1">Multi-Agent Intelligence & Deliberation Platform</p>
+            <div className="flex items-center gap-1.5 mb-1">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <h1 className="text-3xl font-extrabold tracking-tight text-white">Veritas AI</h1>
+            </div>
+            <p className="text-amber-300/80 text-xs font-semibold uppercase tracking-widest text-center">
+              Autonomous Multi-Agent Deliberation Engine
+            </p>
           </div>
 
-          {/* BYJU'S Interactive Tab Selector */}
-          <div className="flex bg-gray-950 p-1.5 rounded-2xl mb-6 border border-white/10">
+          {/* Toggle Tabs */}
+          <div className="flex bg-[#1A0933] p-1.5 rounded-2xl mb-6 border border-white/10">
             <button
               type="button"
               onClick={() => {
@@ -110,8 +107,8 @@ export default function Login() {
               }}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 isLoginMode
-                  ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-lg shadow-purple-900/30'
-                  : 'text-gray-400 hover:text-gray-200'
+                  ? 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg shadow-purple-900/40'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
               <LogIn size={15} /> Sign In
@@ -123,8 +120,8 @@ export default function Login() {
               }}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 !isLoginMode
-                  ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-lg shadow-purple-900/30'
-                  : 'text-gray-400 hover:text-gray-200'
+                  ? 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg shadow-purple-900/40'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
               <UserPlus size={15} /> Sign Up
@@ -132,45 +129,39 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
-                Username
-              </label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Username</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
-                className="w-full bg-gray-950/80 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:border-purple-500 transition-colors placeholder-gray-600"
+                placeholder="Enter your username"
+                className="w-full bg-[#1A0933] border border-white/10 outline-none rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-amber-400 transition-colors"
                 autoFocus
               />
             </div>
 
             {!isLoginMode && (
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
-                  Email Address
-                </label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Email Address</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. user@example.com"
-                  className="w-full bg-gray-950/80 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:border-purple-500 transition-colors placeholder-gray-600"
+                  placeholder="e.g. prajeen114@gmail.com"
+                  className="w-full bg-[#1A0933] border border-white/10 outline-none rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-amber-400 transition-colors"
                 />
               </div>
             )}
 
-            <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
-                Password
-              </label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                className="w-full bg-gray-950/80 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:border-purple-500 transition-colors placeholder-gray-600"
+                placeholder="Enter your password"
+                className="w-full bg-[#1A0933] border border-white/10 outline-none rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-amber-400 transition-colors"
               />
             </div>
 
@@ -180,7 +171,7 @@ export default function Login() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="text-red-400 text-xs text-center font-semibold bg-red-950/30 p-2.5 rounded-xl border border-red-500/30"
+                  className="text-red-400 text-xs text-center font-semibold mt-2 bg-red-950/40 p-2 rounded-lg border border-red-500/30"
                 >
                   {error}
                 </motion.p>
@@ -190,7 +181,7 @@ export default function Login() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="text-emerald-400 text-xs text-center font-semibold bg-emerald-950/30 p-2.5 rounded-xl border border-emerald-500/30"
+                  className="text-emerald-300 text-xs text-center font-semibold mt-2 bg-emerald-950/40 p-2 rounded-lg border border-emerald-500/30"
                 >
                   {successMsg}
                 </motion.p>
@@ -200,33 +191,23 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading || !username || !password || (!isLoginMode && !email)}
-              className="w-full mt-4 bg-gradient-to-r from-[#8028A3] via-purple-600 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-bold p-4 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 shadow-xl shadow-purple-900/40 cursor-pointer border border-white/10"
+              className="w-full mt-4 byjus-btn-primary py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer text-sm font-bold shadow-lg"
             >
               {isLoading ? (
-                <Loader2 size={20} className="animate-spin" />
+                <Loader2 size={20} className="animate-spin text-purple-950" />
               ) : (
                 <>
-                  <span>{isLoginMode ? 'Sign In & Enter Home' : 'Create Account & Continue'}</span>
+                  <span>{isLoginMode ? 'Authenticate Account' : 'Create Veritas AI Account'}</span>
                   <ArrowRight size={18} />
                 </>
               )}
             </button>
           </form>
 
-          {/* BYJU'S Feature Badges Footer */}
-          <div className="mt-6 pt-4 border-t border-white/10 grid grid-cols-3 gap-2 text-center text-[10px] text-gray-400 font-mono">
-            <div className="flex items-center justify-center gap-1">
-              <ShieldCheck className="w-3 h-3 text-cyan-400" />
-              <span>Isolated</span>
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              <Zap className="w-3 h-3 text-yellow-400" />
-              <span>7 AI Agents</span>
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              <Layers className="w-3 h-3 text-purple-400" />
-              <span>LangGraph</span>
-            </div>
+          {/* Footer Badge */}
+          <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-center gap-2 text-[11px] text-amber-300/80 font-semibold">
+            <Award className="w-3.5 h-3.5 text-amber-400" />
+            <span>Veritas AI v2.5 Enterprise Edition</span>
           </div>
         </div>
       </motion.div>
