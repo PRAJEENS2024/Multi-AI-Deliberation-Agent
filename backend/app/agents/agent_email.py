@@ -19,7 +19,6 @@ from reportlab.platypus import (
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
 
 from app.agents.llm_client import query_llm, AGENT_PERSONAS
-from app.services.state_manager import get_email_config
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -569,22 +568,14 @@ The complete report with full agent transcripts, fact checks, and bias audit is 
   </div>
 </body></html>"""
 
-        # Step 4: Send via SMTP (use saved config if available, fall back to default)
-        saved_config = get_email_config()
-        if saved_config and saved_config.smtp_pass:
-            smtp_host   = saved_config.smtp_host or "smtp.gmail.com"
-            smtp_port   = saved_config.smtp_port or 587
-            smtp_user   = saved_config.smtp_user or "b.balasrisabhari@gmail.com"
-            smtp_pass   = saved_config.smtp_pass.replace(" ", "").strip('"\' ')
-            sender_name = saved_config.sender_name or "AI Jury"
-            use_tls     = saved_config.use_tls
-        else:
-            smtp_host   = os.getenv("SMTP_HOST", "smtp.gmail.com")
-            smtp_port   = int(os.getenv("SMTP_PORT", "587"))
-            smtp_user   = os.getenv("SMTP_USER", "b.balasrisabhari@gmail.com")
-            smtp_pass   = os.getenv("SMTP_PASS", "kwmrgglppgujjnlz").replace(" ", "").strip('"\' ')
-            sender_name = "AI Jury"
-            use_tls     = True
+        # Step 4: Send via SMTP using env vars
+        smtp_host   = os.getenv("SMTP_HOST", "smtp.gmail.com")
+        smtp_port   = int(os.getenv("SMTP_PORT", "587"))
+        smtp_user   = os.getenv("SMTP_USER", "")
+        smtp_pass   = os.getenv("SMTP_PASS", "").replace(" ", "").strip('"\' ')
+        sender_name = "AI Jury"
+        use_tls     = True
+
 
         if not smtp_user or not smtp_pass:
             return False, "SMTP credentials not configured. Please enter your email and app password in Email Settings."
@@ -662,9 +653,3 @@ The complete report with full agent transcripts, fact checks, and bias audit is 
 
     except Exception as e:
         return False, f"Email send failed: {str(e)}"
-
-
-    except Exception as e:
-        return False, f"Email send failed: {str(e)}"
-
-

@@ -59,8 +59,9 @@ export default function Landing() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-950/80 border border-purple-500/40 text-amber-300 text-xs font-bold shadow-lg shadow-purple-900/40"
           >
             <Award className="w-4 h-4 text-amber-400" />
-            <span>BYJU'S Inspired AI Learning & Truth Synthesis Hub</span>
+            <span>Autonomous AI Deliberation & Truth Synthesis Platform</span>
           </motion.div>
+
 
           <h1 className="text-4xl sm:text-6xl font-black text-white leading-tight tracking-tight">
             Where <span className="byjus-gradient-text">7 Autonomous AI Agents</span> Cross-Examine Evidence to Discover Truth

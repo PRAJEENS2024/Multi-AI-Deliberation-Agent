@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field, EmailStr
+import os
+from pydantic import BaseModel, Field
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 
@@ -183,20 +184,21 @@ class EmailSettingsRequest(BaseModel):
     email: str
 
 class EmailConfig(BaseModel):
-    smtp_host: str = "smtp.gmail.com"
-    smtp_port: int = 587
-    smtp_user: str = "b.balasrisabhari@gmail.com"
-    smtp_pass: str = "kwmr gglp pguj jnlz"
-    sender_name: str = "AI Jury"
+    smtp_host: str = Field(default_factory=lambda: os.getenv("SMTP_HOST", "smtp.gmail.com"))
+    smtp_port: int = Field(default_factory=lambda: int(os.getenv("SMTP_PORT", "587")))
+    smtp_user: str = Field(default_factory=lambda: os.getenv("SMTP_USER", ""))
+    smtp_pass: str = Field(default_factory=lambda: os.getenv("SMTP_PASS", ""))
+    sender_name: str = "Veritas AI"
     use_tls: bool = True
 
 class SaveEmailConfigRequest(BaseModel):
-    smtp_host: str = "smtp.gmail.com"
-    smtp_port: int = 587
-    smtp_user: str = "b.balasrisabhari@gmail.com"
-    smtp_pass: str = "kwmr gglp pguj jnlz"
-    sender_name: str = "AI Jury"
+    smtp_host: str = Field(default_factory=lambda: os.getenv("SMTP_HOST", "smtp.gmail.com"))
+    smtp_port: int = Field(default_factory=lambda: int(os.getenv("SMTP_PORT", "587")))
+    smtp_user: str = Field(default_factory=lambda: os.getenv("SMTP_USER", ""))
+    smtp_pass: str = Field(default_factory=lambda: os.getenv("SMTP_PASS", ""))
+    sender_name: str = "Veritas AI"
     use_tls: bool = True
+
 
 
 # ── Export ────────────────────────────────────────────────────────────────────

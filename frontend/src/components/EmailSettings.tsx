@@ -9,9 +9,10 @@ export default function EmailSettings() {
   const [isOpen, setIsOpen] = useState(false);
   const [smtpHost, setSmtpHost] = useState('smtp.gmail.com');
   const [smtpPort, setSmtpPort] = useState(587);
-  const [smtpUser, setSmtpUser] = useState('b.balasrisabhari@gmail.com');
-  const [smtpPass, setSmtpPass] = useState('kwmr gglp pguj jnlz');
-  const [senderName, setSenderName] = useState('AI Jury');
+  const [smtpUser, setSmtpUser] = useState('');
+  const [smtpPass, setSmtpPass] = useState('');
+  const [senderName, setSenderName] = useState('Veritas AI');
+
 
   const [useTls, setUseTls] = useState(true);
   const [saving, setSaving] = useState(false);

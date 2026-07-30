@@ -91,17 +91,17 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
-    if (routeSessionId && routeSessionId !== sessionId) {
+    if (routeSessionId) {
       setSessionId(routeSessionId);
-      setPendingMessages([]);
       setIsPolling(true);
-    } else if (!routeSessionId) {
+    } else {
       setSessionId(null);
       setSessionState(null);
       setIsPolling(false);
       setPendingMessages([]);
     }
   }, [routeSessionId]);
+
 
   useEffect(() => {
     scrollToBottom();

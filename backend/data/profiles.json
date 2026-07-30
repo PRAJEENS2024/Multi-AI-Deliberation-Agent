@@ -9,5 +9,23 @@
     "groq_api_key": "",
     "notifications_enabled": true,
     "email_reports_enabled": true
+  },
+  "bala1": {
+    "user_id": "bala1",
+    "username": "bala1",
+    "email": "b.balasrisabhari@gmail.com",
+    "full_name": "Bala1",
+    "groq_api_key": "",
+    "notifications_enabled": true,
+    "email_reports_enabled": true
+  },
+  "abhinav": {
+    "user_id": "abhinav",
+    "username": "abhinav",
+    "email": "abhinavkumaran2006@gmail.com",
+    "full_name": "Abhinav",
+    "groq_api_key": "",
+    "notifications_enabled": true,
+    "email_reports_enabled": true
   }
 }

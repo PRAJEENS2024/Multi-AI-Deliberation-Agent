@@ -27,19 +27,10 @@ export default function Login() {
         const res = await axios.post(`${API_URL}/auth/login`, { username, password });
         if (res.data.success) {
           localStorage.setItem('auth_token', res.data.token);
-          let userEmail = res.data.email || '';
-          if (!userEmail) {
-            try {
-              const detail = JSON.parse(res.data.detail || '{}');
-              userEmail = detail.email || '';
-            } catch {}
-          }
-          if (userEmail) {
-            localStorage.setItem('user_email', userEmail);
-          }
-          localStorage.setItem('username', username);
+          localStorage.setItem('user_email', res.data.email || '');
+          localStorage.setItem('username', res.data.username || username);
           localStorage.setItem('user_id', res.data.user_id || username);
-          navigate('/'); // Redirect to Main Home Page after login
+          navigate('/');
         }
       } else {
         if (!email || !email.includes('@')) {
